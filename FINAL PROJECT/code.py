@@ -1,76 +1,64 @@
-#### PROJET FINAL - Analyse des comportements des investisseurs
-#Dataset finance à trouver: Kaggle ? 
+#### PROJET FINAL - Prédiction churns opérateurs téléphoniques
+# Dataset Churns https://www.kaggle.com/datasets/kapturovalexander/customers-churned-in-telecom-services?resource=download
+# #Dataset transac metaverse: https://www.kaggle.com/datasets/faizaniftikharjanjua/metaverse-financial-transactions-dataset
 
+#pip install pandas numpy matplotlib seaborn
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-import streamlit as st
-import joblib
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# Chargement des données (Exemple, à adapter selon Kaggle API)
-def load_data(filepath):
-    data = pd.read_csv(filepath)
-    return data
+df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement à partir du chemin
 
-# Prétraitement des données
-def preprocess_data(data):
-    # Suppression des valeurs manquantes
-    data = data.dropna()
-    
-    # Sélection des variables pertinentes
-    features = ['montant_transaction', 'frequence_transaction', 'produit_financier']
-    X = data[features]
-    
-    # Normalisation
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    
-    return X_scaled, scaler
+# Exploration des données
+print(df.head())
+print(df.info())
+print(df.describe())
 
-# Clustering avec K-Means
-def apply_kmeans(X, n_clusters=3):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    labels = kmeans.fit_predict(X)
-    return kmeans, labels
+# Vérification des valeurs manquantes
+print(df.isnull().sum())
 
-# Sauvegarde du modèle
-def save_model(model, scaler, filename="models/kmeans_model.pkl"):
-    joblib.dump((model, scaler), filename)
-    
-# Chargement du modèle
-def load_model(filename="models/kmeans_model.pkl"):
-    return joblib.load(filename)
+# Graph churns
+plt.figure(figsize=(6,4))
+sns.countplot(x='Churn', data=df, palette='coolwarm')
+plt.title('Répartition du Churn')
+plt.show()
 
-# Visualisation avec PCA
-def plot_clusters(X, labels):
-    pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X)
-    
-    plt.figure(figsize=(8,6))
-    sns.scatterplot(x=X_pca[:,0], y=X_pca[:,1], hue=labels, palette='viridis')
-    plt.title('Segmentation des investisseurs')
-    plt.show()
+# Transformation des données
+label_encoders = {}
+for col in df.select_dtypes(include=['object']).columns:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
 
-# Pipeline complète
-def pipeline(filepath):
-    data = load_data(filepath)
-    X_scaled, scaler = preprocess_data(data)
-    kmeans, labels = apply_kmeans(X_scaled, 3)
-    save_model(kmeans, scaler)
-    plot_clusters(X_scaled, labels)
+# Séparation des données
+X = df.drop(columns=['Churn'])
+y = df['Churn']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Interface interactive avec Streamlit
-def dashboard():
-    st.title("Segmentation des investisseurs")
-    data = load_data("transactions.csv")
-    X_scaled, scaler = preprocess_data(data)
-    kmeans, labels = apply_kmeans(X_scaled, 3)
-    plot_clusters(X_scaled, labels)
-    st.write("Clustering terminé et affiché ci-dessus.")
-    
-if __name__ == "__main__":
-    dashboard()
+# Normalisation des données
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# ML: random forest 
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+# Évaluation du modèle
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+# Matrice de confusion
+plt.figure(figsize=(6,4))
+sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='coolwarm')
+plt.title('Matrice de Confusion')
+plt.xlabel('Prédit')
+plt.ylabel('Réel')
+plt.show()
