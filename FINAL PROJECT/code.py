@@ -14,40 +14,36 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement à partir du chemin
+df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement données
 
-# Exploration des données
+# Exploration et analyse
 print(df.head())
 print(df.info())
 print(df.describe())
 
-# Vérification des valeurs manquantes
-print(df.isnull().sum())
+print(df.isnull().sum()) # Vérification des valeurs manquantes
 
-# Graph churns
-plt.figure(figsize=(6,4))
+plt.figure(figsize=(6,4)) # Graph churns
 sns.countplot(x='Churn', data=df, palette='coolwarm')
 plt.title('Répartition du Churn')
 plt.show()
 
-# Transformation des données
-label_encoders = {}
+#Pipeline
+label_encoders = {} # Transformation des données
 for col in df.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
 
-# Séparation des données
-X = df.drop(columns=['Churn'])
+X = df.drop(columns=['Churn']) # Séparation des données
 y = df['Churn']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Normalisation des données
-scaler = StandardScaler()
+# Modele machine learning: random forest
+scaler = StandardScaler() # Normalisation des données
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# ML: random forest 
 clf = RandomForestClassifier(n_estimators=100, random_state=42)
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
