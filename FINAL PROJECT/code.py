@@ -1,6 +1,8 @@
-#### PROJET FINAL - Prédiction churns opérateurs téléphoniques
-# Dataset Churns https://www.kaggle.com/datasets/kapturovalexander/customers-churned-in-telecom-services?resource=download
-# #Dataset transac metaverse: https://www.kaggle.com/datasets/faizaniftikharjanjua/metaverse-financial-transactions-dataset
+"""
+PROJET FINAL - Prédiction churns opérateurs téléphoniques
+Dataset Churns https://www.kaggle.com/datasets/kapturovalexander/customers-churned-in-telecom-services?resource=download
+"""
+#Dataset transac metaverse: https://www.kaggle.com/datasets/faizaniftikharjanjua/metaverse-financial-transactions-dataset
 
 #pip install pandas numpy matplotlib seaborn
 import pandas as pd
