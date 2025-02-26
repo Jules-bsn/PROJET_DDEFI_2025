@@ -16,11 +16,12 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement données
 
-# Exploration et analyse
-print(df.head())
-print(df.info())
-print(df.describe())
+### PIPELINE
+## Extract (exploration et analyse)
+print("Colonnes disponibles :", df.columns.tolist())
 
+print(df.head()) #aperçu de la df 
+print(df.describe()) #donne les stat, moyennes, quartiles, min, max. 
 print(df.isnull().sum()) # Vérification des valeurs manquantes
 
 plt.figure(figsize=(6,4)) # Graph churns
@@ -28,8 +29,16 @@ sns.countplot(x='Churn', data=df, palette='coolwarm')
 plt.title('Répartition du Churn')
 plt.show()
 
-#Pipeline
-label_encoders = {} # Transformation des données
+## Transform
+#Nettoyage valeurs manquantes
+important_columns = ['Contract', 'tenure', 'MonthlyCharges', 'PhoneService', 'InternetService']
+df.dropna(subset=important_columns, inplace=True)
+
+## Load
+
+
+#Encodage des variables catégorielles en valeurs numériques
+label_encoders = {} 
 for col in df.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
