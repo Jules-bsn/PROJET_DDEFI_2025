@@ -16,8 +16,8 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement données
 
-### PIPELINE
-## Extract (exploration et analyse)
+######### PIPELINE ########
+#### Extract (exploration et analyse)
 print("Colonnes disponibles :", df.columns.tolist())
 
 print(df.head()) #aperçu de la df 
@@ -58,10 +58,14 @@ sns.heatmap(correlation, annot=True, cmap='coolwarm')
 plt.title('Matrice de corrélation')
 plt.show()
 
-## Transform
-# Nettoyage valeurs manquantes
+#### Transform
+# Nettoyage valeurs manquantes dans colonnes importantes
 important_columns = ['Contract', 'tenure', 'MonthlyCharges', 'PhoneService', 'InternetService']
 df.dropna(subset=important_columns, inplace=True)
+
+# convertit 'TotalCharges' en numérique + gère les valeurs manquantes
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df['TotalCharges'].fillna(df['TotalCharges'].median(), inplace=True)
 
 # Encodage des variables catégorielles en valeurs numériques
 label_encoders = {} 
@@ -70,14 +74,30 @@ for col in df.select_dtypes(include=['object']).columns:
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
 
+# Dummies / one-hot encoding pour  variables catégorielles
+categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+
+# normalisation variables numériques, assure que toutes les variables numériques sont à la même échelle
+numerical_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+scaler = StandardScaler()
+df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
+
 # Séparation des données en données d'entrainement et de test
 X = df.drop(columns=['Churn']) 
 y = df['Churn']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-## Load si nécessaire
+# Matrice de corrélation var catégorielles
+correlation_matrix = df.corr() # Calcul 
+plt.figure(figsize=(20, 15))
+sns.heatmap(correlation_matrix, cmap='coolwarm', annot=False)
+plt.title('Matrice de corrélation')
+plt.show()
 
-### ML 
+#### Load si nécessaire
+
+######### ML ########
 ## Random forest
 scaler = StandardScaler() # Normalisation des données
 X_train = scaler.fit_transform(X_train)
@@ -112,3 +132,5 @@ print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Classification Report:")
 print(classification_report(y_test, y_pred))
 print(confusion_matrix(y_test, y_pred))
+
+######### BONUS ########
