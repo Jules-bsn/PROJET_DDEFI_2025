@@ -23,10 +23,39 @@ print("Colonnes disponibles :", df.columns.tolist())
 print(df.head()) #aperçu de la df 
 print(df.describe()) #donne les stat, moyennes, quartiles, min, max. 
 print(df.isnull().sum()) # Vérification des valeurs manquantes
+print(df.duplicated().sum()) # Vérification des doublons
+for col in df.select_dtypes(include='object').columns: #quels valeurs possibles par catégorie
+    print(f"\n{col}: {df[col].unique()}")
 
-plt.figure(figsize=(6,4)) # Graph churns
+# Distribution graph churns
+plt.figure(figsize=(6,4)) 
 sns.countplot(x='Churn', data=df, palette='coolwarm')
 plt.title('Répartition du Churn')
+plt.show()
+
+# distribution des frais / durée abonnement
+numerical_features = ['tenure', 'MonthlyCharges', 'TotalCharges'] 
+for feature in numerical_features:
+    sns.histplot(df[feature], kde=True)
+    plt.title(f'Distribution de {feature}')
+    plt.show()
+
+# Relation entre les variables catégorielles et le churn
+categorical_features = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService',
+                        'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup',
+                        'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies',
+                        'Contract', 'PaperlessBilling', 'PaymentMethod']
+for feature in categorical_features:
+    plt.figure(figsize=(8, 5))
+    sns.countplot(x=feature, hue='Churn', data=df)
+    plt.title(f'Churn par {feature}')
+    plt.xticks(rotation=45)
+    plt.show()
+
+# Matrice de corrélation pour les charges et durée des abonnements
+correlation = df[numerical_features].corr()
+sns.heatmap(correlation, annot=True, cmap='coolwarm')
+plt.title('Matrice de corrélation')
 plt.show()
 
 ## Transform
@@ -41,14 +70,15 @@ for col in df.select_dtypes(include=['object']).columns:
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
 
-X = df.drop(columns=['Churn']) # Séparation des données
+# Séparation des données en données d'entrainement et de test
+X = df.drop(columns=['Churn']) 
 y = df['Churn']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 ## Load si nécessaire
 
 ### ML 
-# Random forest
+## Random forest
 scaler = StandardScaler() # Normalisation des données
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -69,3 +99,16 @@ plt.title('Matrice de Confusion')
 plt.xlabel('Prédit')
 plt.ylabel('Réel')
 plt.show()
+
+## Régression logistique
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# évaluation régression logistique
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
