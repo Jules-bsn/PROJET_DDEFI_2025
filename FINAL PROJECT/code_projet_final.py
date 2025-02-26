@@ -30,14 +30,11 @@ plt.title('Répartition du Churn')
 plt.show()
 
 ## Transform
-#Nettoyage valeurs manquantes
+# Nettoyage valeurs manquantes
 important_columns = ['Contract', 'tenure', 'MonthlyCharges', 'PhoneService', 'InternetService']
 df.dropna(subset=important_columns, inplace=True)
 
-## Load
-
-
-#Encodage des variables catégorielles en valeurs numériques
+# Encodage des variables catégorielles en valeurs numériques
 label_encoders = {} 
 for col in df.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
@@ -48,7 +45,10 @@ X = df.drop(columns=['Churn']) # Séparation des données
 y = df['Churn']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Modele machine learning: random forest
+## Load si nécessaire
+
+### ML 
+# Random forest
 scaler = StandardScaler() # Normalisation des données
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
