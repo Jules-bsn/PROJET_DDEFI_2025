@@ -4,15 +4,17 @@ Dataset Churns https://www.kaggle.com/datasets/kapturovalexander/customers-churn
 """
 #Dataset transac metaverse: https://www.kaggle.com/datasets/faizaniftikharjanjua/metaverse-financial-transactions-dataset
 
-#pip install pandas numpy matplotlib seaborn
+#pip install pandas numpy matplotlib seaborn sklearn
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 
 df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement données
 
@@ -98,7 +100,7 @@ plt.show()
 #### Load si nécessaire
 
 ######### ML ########
-## Random forest
+#### Random forest
 scaler = StandardScaler() # Normalisation des données
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -120,7 +122,12 @@ plt.xlabel('Prédit')
 plt.ylabel('Réel')
 plt.show()
 
-## Régression logistique
+# Cross-validation sur Random Forest
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+scores = cross_val_score(rf, X, y, cv=5, scoring='accuracy')
+print("\nCross-validation Score Random Forest:", scores.mean())
+
+#### Régression logistique
 from sklearn.linear_model import LogisticRegression
 
 model = LogisticRegression()
@@ -133,4 +140,31 @@ print("Classification Report:")
 print(classification_report(y_test, y_pred))
 print(confusion_matrix(y_test, y_pred))
 
-######### BONUS ########
+### XGBoost, SVP, KNN
+models = {
+    "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42),
+    "SVM": SVC(kernel='rbf', probability=True, random_state=42),
+    "KNN": KNeighborsClassifier(n_neighbors=5)
+}
+
+# Entraînement et évaluation des modèles
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_prob = model.predict_proba(X_test)[:, 1] if hasattr(model, "predict_proba") else None
+    
+    print(f"\n{name} Model Performance:")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("ROC AUC Score:", roc_auc_score(y_test, y_prob) if y_prob is not None else "N/A")
+    print("Classification Report:")
+    print(classification_report(y_test, y_pred))
+    
+    # Matrice de confusion
+    plt.figure(figsize=(6,4))
+    sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='coolwarm')
+    plt.title(f'Matrice de Confusion - {name}')
+    plt.xlabel('Prédit')
+    plt.ylabel('Réel')
+    plt.show()
+
+######### Contenairisation etc ########
