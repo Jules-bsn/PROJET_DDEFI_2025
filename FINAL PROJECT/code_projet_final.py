@@ -42,7 +42,7 @@ for feature in numerical_features:
     sns.histplot(df[feature], kde=True)
     plt.title(f'Distribution de {feature}')
     plt.show()
-
+"""
 # Relation entre les variables catégorielles et le churn
 categorical_features = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService',
                         'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup',
@@ -53,7 +53,7 @@ for feature in categorical_features:
     sns.countplot(x=feature, hue='Churn', data=df)
     plt.title(f'Churn par {feature}')
     plt.xticks(rotation=45)
-    plt.show()
+    plt.show()"""
 
 # Matrice de corrélation pour les charges et durée des abonnements
 correlation = df[numerical_features].corr()
@@ -144,5 +144,34 @@ for name, model in models.items():
 print("\nRésultats de la Cross-Validation :")
 for model, score in cv_results.items():
     print(f"{model}: {score:.4f}")
+
+#### Facteurs de résiliation
+importances = models["Random Forest"].feature_importances_
+feature_names = X.columns
+
+plt.figure(figsize=(10,6))
+sns.barplot(x=importances, y=feature_names, palette="coolwarm")
+plt.title("Importance des variables pour le churn")
+plt.show()
+
+#### Segmentation clients à risque (10 plus à risque de churn)
+df['Churn_Probability'] = models["Random Forest"].predict_proba(X)[:, 1]
+df['Client_Index'] = df.index  # Utiliser l'index comme identifiant client
+
+top_churners = df[['Client_Index', 'Churn_Probability', 'tenure', 'Contract', 'MonthlyCharges', 'TotalCharges']]\
+                .sort_values(by='Churn_Probability', ascending=False)\
+                .head(10)
+
+print("\nTop 10 clients les plus à risque de churn :")
+print(top_churners)
+
+#### Clustering
+from sklearn.cluster import KMeans
+
+kmeans = KMeans(n_clusters=3, random_state=42)
+df['Cluster'] = kmeans.fit_predict(X)
+
+sns.pairplot(df, hue='Cluster', vars=['tenure', 'MonthlyCharges', 'TotalCharges'])
+plt.show()
 
 ######### Contenairisation etc ########
