@@ -106,7 +106,6 @@ X_test = scaler.transform(X_test)
 #### Load si nécessaire
 
 ######### ML ########
-#### Définition des modèles
 models = {
     "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42),
     "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42),
@@ -115,7 +114,7 @@ models = {
     "Régression logistique": LogisticRegression()
 }
 
-# Entraînement et évaluation des modèles
+# Entraînement + évaluation des modèles
 for name, model in models.items():
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -135,13 +134,13 @@ for name, model in models.items():
     plt.ylabel('Réel')
     plt.show()
 
-# Cross-validation pour tous les modèles
+# Cross-validation pour chaque modèle
 cv_results = {}
 for name, model in models.items():
     scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')  # Cross-validation 5-fold
     cv_results[name] = scores.mean()  # Moyenne des scores
 
-# Affichage des résultats de cross-validation
+# résultats  cross-validation
 print("\nRésultats de la Cross-Validation :")
 for model, score in cv_results.items():
     print(f"{model}: {score:.4f}")
