@@ -42,7 +42,7 @@ for feature in numerical_features:
     sns.histplot(df[feature], kde=True)
     plt.title(f'Distribution de {feature}')
     plt.show()
-"""
+
 # Relation entre les variables catégorielles et le churn
 categorical_features = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'PhoneService',
                         'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup',
@@ -53,7 +53,7 @@ for feature in categorical_features:
     sns.countplot(x=feature, hue='Churn', data=df)
     plt.title(f'Churn par {feature}')
     plt.xticks(rotation=45)
-    plt.show()"""
+    plt.show()
 
 # Matrice de corrélation pour les charges et durée des abonnements
 correlation = df[numerical_features].corr()
