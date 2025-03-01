@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -97,54 +98,21 @@ sns.heatmap(correlation_matrix, cmap='coolwarm', annot=False)
 plt.title('Matrice de corrélation')
 plt.show()
 
-#### Load si nécessaire
-
-######### ML ########
-#### Random forest
-scaler = StandardScaler() # Normalisation des données
+# Normalisation des données
+scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
+#### Load si nécessaire
 
-# Évaluation du modèle
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Classification Report:")
-print(classification_report(y_test, y_pred))
-
-# Matrice de confusion
-plt.figure(figsize=(6,4))
-sns.heatmap(confusion_matrix(y_test, y_pred), annot=True, fmt='d', cmap='coolwarm')
-plt.title('Matrice de Confusion')
-plt.xlabel('Prédit')
-plt.ylabel('Réel')
-plt.show()
-
-# Cross-validation sur Random Forest
-rf = RandomForestClassifier(n_estimators=100, random_state=42)
-scores = cross_val_score(rf, X, y, cv=5, scoring='accuracy')
-print("\nCross-validation Score Random Forest:", scores.mean())
-
-#### Régression logistique
-from sklearn.linear_model import LogisticRegression
-
-model = LogisticRegression()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-
-# évaluation régression logistique
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Classification Report:")
-print(classification_report(y_test, y_pred))
-print(confusion_matrix(y_test, y_pred))
-
-### XGBoost, SVP, KNN
+######### ML ########
+#### Définition des modèles
 models = {
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42),
     "Gradient Boosting": GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42),
     "SVM": SVC(kernel='rbf', probability=True, random_state=42),
-    "KNN": KNeighborsClassifier(n_neighbors=5)
+    "KNN": KNeighborsClassifier(n_neighbors=5),
+    "Régression logistique": LogisticRegression()
 }
 
 # Entraînement et évaluation des modèles
@@ -166,5 +134,16 @@ for name, model in models.items():
     plt.xlabel('Prédit')
     plt.ylabel('Réel')
     plt.show()
+
+# Cross-validation pour tous les modèles
+cv_results = {}
+for name, model in models.items():
+    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')  # Cross-validation 5-fold
+    cv_results[name] = scores.mean()  # Moyenne des scores
+
+# Affichage des résultats de cross-validation
+print("\nRésultats de la Cross-Validation :")
+for model, score in cv_results.items():
+    print(f"{model}: {score:.4f}")
 
 ######### Contenairisation etc ########
