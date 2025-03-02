@@ -4,7 +4,10 @@ import pandas as pd
 import numpy as np
 
 # Charger le modèle
-model = joblib.load("../deployment/gradient_boosting_model.pkl")
+import os
+model_path = os.path.join(os.path.dirname(__file__), "gradient_boosting_model.pkl")
+model = joblib.load(model_path)
+
 
 # Initialiser l'API Flask
 app = Flask(__name__)
