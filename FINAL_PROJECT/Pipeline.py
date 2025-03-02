@@ -18,6 +18,11 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, PowerTransformer
 from sklearn.neighbors import KNeighborsClassifier
 import os
+
+#__
+from Feature_engineering import Ajout_colonnes_feature_engineering
+
+#__
 print(os.getcwd())
 os.chdir('/Users/julesbesson/Documents/CENTRALE marseille/S9/PROJET_DDEFI_2025/FINAL_PROJECT')
 dataframe_brut = pd.read_csv('customer_churn_telecom_services.csv') # chargement données
@@ -103,6 +108,16 @@ def pipeline(dataframe):
     verification(df, phase="après") # Vérification après l'encodage
     return df
 
+def pipeline_with_feature_engineering(dataframe):
+    df = dataframe.copy()
+    df = pre_traitement(df) # Pré-traitement des données
+    df = Ajout_colonnes_feature_engineering(df)
+    df = pre_traitement(df) # Pré-traitement des données
+    verification(df, phase="avant") # Vérification avant l'encodage
+    df = encoder(df) # Encodage des variables catégorielles
+    verification(df, phase="après") # Vérification après l'encodage
+    return df
+
 # A APPLIQUER seulement sur les data d'entrainement
 def preprocess_data(df): # Utile seulement pour les modèles : Régression logistique, SVM, KNN, Réseaux de neurones, techniques de réduction de dimension
     """
@@ -131,3 +146,17 @@ def preprocess_data(df): # Utile seulement pour les modèles : Régression logis
         df[col] = scaler.fit_transform(df[[col]])
 
     return df
+
+
+'''
+df = dataframe_brut.copy()
+df = pre_traitement(df)
+df = Ajout_colonnes_feature_engineering(df)
+df = pre_traitement(df)
+
+print(df.isna().sum())
+# Filtrer les lignes où 'tenure_groupe' est NaN
+lignes_na = df[df['tenure_group'].isna()]['tenure']
+
+# Afficher les lignes
+print(lignes_na)'''
