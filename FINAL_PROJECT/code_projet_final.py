@@ -16,8 +16,10 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+import os
+print(os.getcwd())
 
-df = pd.read_csv('customer_churn_telecom_services.csv')  # chargement données
+df = pd.read_csv('FINAL_PROJECT/customer_churn_telecom_services.csv') # chargement données
 
 ######### PIPELINE ########
 #### Extract (exploration et analyse)
@@ -66,22 +68,27 @@ plt.show()
 important_columns = ['Contract', 'tenure', 'MonthlyCharges', 'PhoneService', 'InternetService']
 df.dropna(subset=important_columns, inplace=True)
 
-# convertit 'TotalCharges' en numérique + gère les valeurs manquantes
+# convertit 'TotalCharges' en numérique 
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+
+# Gestion des valeurs manquantes en les remplaçant par la médiane 
 df['TotalCharges'].fillna(df['TotalCharges'].median(), inplace=True)
 
+'''
 # Encodage des variables catégorielles en valeurs numériques
 label_encoders = {} 
 for col in df.select_dtypes(include=['object']).columns:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     label_encoders[col] = le
-
-# Dummies / one-hot encoding pour  variables catégorielles
+'''
+# One-hot encoding : Dummies pour les variables catégorielles
 categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
-df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+df = pd.get_dummies(df, columns=categorical_cols, drop_first=True) # Dropfirst --> 1 seule colonne pour la colonne avec 2 variables différentes  
 
 # normalisation variables numériques, assure que toutes les variables numériques sont à la même échelle
+# A CHANGER ! utile seulement pour CERTAINS MODELES (Jules)
+
 numerical_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
 scaler = StandardScaler()
 df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
