@@ -9,13 +9,8 @@ os.chdir('/Users/julesbesson/Documents/CENTRALE marseille/S9/PROJET_DDEFI_2025/F
 dataframe_brut = pd.read_csv('customer_churn_telecom_services.csv') # chargement données
 
 def Ajout_colonnes_feature_engineering(df):
-    df = df.copy()
-
-    # tenure_group : Regrouper l'ancienneté
-    df['tenure_group'] = pd.cut(df['tenure'], bins=[-np.inf, 12, 24, 48, 72, np.inf],
-                                labels=['0-12 mois', '12-24 mois', '24-48 mois', '48-72 mois', '72+ mois'])
     
-    #df['tenure_group'] = df['tenure_group'].fillna('0-12 mois')
+    df = df.copy()
 
     # avg_monthly_charge : Moyenne mensuelle (attention aux divisions par zéro)
     df['avg_monthly_charge'] = df.apply(
@@ -63,7 +58,7 @@ def Ajout_colonnes_feature_engineering(df):
 
     return df
 
-def pipeline_with_feature_engineering(dataframe):
+def pipeline_features(dataframe):
     df = dataframe.copy()
     df = pre_traitement(df)
     #print('A = ', df.isna().sum())
@@ -75,5 +70,14 @@ def pipeline_with_feature_engineering(dataframe):
 
 
 df = dataframe_brut.copy()
-df = pipeline_with_feature_engineering(df)
-print(df.isna().sum())
+df = pipeline_features(df)
+print(df.columns)
+#print(df['tenure_group'].astype(str))
+#print(df['tenure_group'])
+
+
+    # tenure_group : Regrouper l'ancienneté
+    #df['tenure_group'] = pd.cut(df['tenure'], bins=[-np.inf, 12, 24, 48, 72, np.inf],
+                                #labels=['0-12 mois', '12-24 mois', '24-48 mois', '48-72 mois', '72+ mois'])
+    
+    #df['tenure_group'] = df['tenure_group'].fillna('0-12 mois')
