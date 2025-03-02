@@ -1,12 +1,18 @@
-#!/bin/bash
+FROM python:3.9
 
-# Installation des dépendances
-pip install -r requirements.txt
+# Définir le répertoire de travail
+WORKDIR /app
 
-# Vérification des fichiers nécessaires
-echo "Vérification des fichiers du projet..."
-[ -f "data/customer_churn_telecom_services.csv" ] || echo "⚠️  Dataset manquant ! Assurez-vous de l'ajouter."
-[ -f "deployment/gradient_boosting_model.pkl" ] || echo "⚠️  Modèle non trouvé ! Exécutez le script d'entraînement."
+# Copier les fichiers nécessaires
+COPY requirements.txt ./
+COPY deployment/app.py ./
+COPY deployment/gradient_boosting_model.pkl ./
 
-# Message de fin
-echo "✅ Installation terminée !"
+# Installer les dépendances
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exposer le port Flask
+EXPOSE 5000
+
+# Commande pour exécuter l'API Flask
+CMD ["python", "app.py"]
