@@ -72,6 +72,7 @@ def pipeline_with_feature_engineering(dataframe):
     df = pipeline(df)
     print('C = ',df.isna().sum())
     return df
+
 '''
 df = dataframe_brut.copy()
 df = pipeline_with_feature_engineering(df)
