@@ -40,10 +40,11 @@ def Ajout_colonnes_feature_engineering(df):
     )
 
     # engagement_score : Score simple d'engagement
+    # engagement_score : Score simple d'engagement avec pondération ajustée
     df['engagement_score'] = (
-        df['tenure'] * 0.1 +
-        df['num_services'] * 1 +
-        df['is_long_term_contract'] * 5
+        df['tenure'] * 0.2 + 
+        df['num_services'] * 1.2 + 
+        df['is_long_term_contract'] * 4 
     )
 
     # is_paperless_and_monthly : Mensuel + facturation dématérialisée
