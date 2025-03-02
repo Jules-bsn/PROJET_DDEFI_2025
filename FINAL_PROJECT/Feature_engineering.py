@@ -12,10 +12,10 @@ def Ajout_colonnes_feature_engineering(df):
     df = df.copy()
 
     # tenure_group : Regrouper l'ancienneté
-    df['tenure_group'] = pd.cut(df['tenure'], bins=[0, 12, 24, 48, 72, np.inf],
+    df['tenure_group'] = pd.cut(df['tenure'], bins=[-np.inf, 12, 24, 48, 72, np.inf],
                                 labels=['0-12 mois', '12-24 mois', '24-48 mois', '48-72 mois', '72+ mois'])
     
-    df['tenure_group'] = df['tenure_group'].fillna('0-12 mois')
+    #df['tenure_group'] = df['tenure_group'].fillna('0-12 mois')
 
     # avg_monthly_charge : Moyenne mensuelle (attention aux divisions par zéro)
     df['avg_monthly_charge'] = df.apply(
@@ -66,14 +66,14 @@ def Ajout_colonnes_feature_engineering(df):
 def pipeline_with_feature_engineering(dataframe):
     df = dataframe.copy()
     df = pre_traitement(df)
-    print('A = ', df.isna().sum())
+    #print('A = ', df.isna().sum())
     df = Ajout_colonnes_feature_engineering(df)
-    print('B = ',df.isna().sum())
+    #print('B = ',df.isna().sum())
     df = pipeline(df)
-    print('C = ',df.isna().sum())
+    #print('C = ',df.isna().sum())
     return df
 
-'''
+
 df = dataframe_brut.copy()
 df = pipeline_with_feature_engineering(df)
-print(df.isna().sum())'''
+print(df.isna().sum())
