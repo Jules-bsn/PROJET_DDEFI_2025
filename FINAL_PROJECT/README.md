@@ -1,105 +1,80 @@
-rédiction du Churn des Clients Télécom
+# 📊 Prédiction du Churn des Clients Télécoms
 
-📂 Structure du Projet
+## 📌 Description du Projet
+Ce projet vise à prédire si un client d'une entreprise de télécommunications va se désabonner (*churn*) en utilisant des techniques de **Machine Learning** et un **pipeline de données automatisé**.
 
-📂 customer_churn_prediction
-│── 📂 data/                 # Contient les datasets bruts et transformés
-│   ├── customer_churn_telecom_services.csv
-│── 📂 notebooks/            # Notebooks pour l'analyse exploratoire et la modélisation
-│   ├── 1_data_exploration.ipynb
-│   ├── 2_feature_engineering.ipynb
-│   ├── 3_model_selection.ipynb
-│── 📂 scripts/              # Scripts Python pour l'industrialisation
-│   ├── pipeline.py          # Pipeline complet de traitement des données
-│   ├── train_model.py       # Entraînement du modèle retenu
-│   ├── predict.py           # Script pour faire des prédictions
-│── 📂 deployment/           # Contient le modèle sauvegardé
-│   ├── model.pkl
-│── requirements.txt         # Dépendances du projet
-│── README.md                # Documentation du projet
-│── .gitignore               # Fichiers à ignorer dans le dépôt Git
+## 📂 Structure du Projet
+```
+project/
+│   README.md  # Documentation principale
+│   requirements.txt  # Dépendances du projet
+│   setup.sh  # Script d'installation
+│
+├── data/
+│   ├── customer_churn_telecom_services.csv  # Dataset utilisé
+│
+├── notebooks/
+│   ├── model_comparison.ipynb  # Notebook d'analyse avancée des modèles ML
+│
+├── src/
+│   ├── Pipeline.py  # Pipeline de traitement des données
+│   ├── features_engineering.py  # Feature engineering
+│   ├── code_projet_final.py  # Modélisation et évaluation des modèles
+│   ├── code_visualisation.ipynb  # Analyse exploratoire et visualisation
+│
+├── deployment/
+│   ├── gradient_boosting_model.pkl  # Modèle ML optimisé sauvegardé
+│   ├── app.py  # API Flask pour servir le modèle
+│   ├── Dockerfile  # Containerisation de l'application
+│   ├── config.yml  # Configuration CI/CD
+│
+└── .gitignore  # Fichier pour exclure certains fichiers du dépôt GitHub
+```
 
--Objectif du Projet
-
-Prédire si un client va quitter l’opérateur télécom (churn) en utilisant un modèle de Machine Learning.
-
--Étapes du Projet
-
-Exploration des Données (``)
-
-Analyse statistique et visualisations
-
-Identification des variables importantes
-
-Feature Engineering (``)
-
-Création de nouvelles variables
-
-Normalisation des données
-
--Sélection du Modèle (``)
-
-Test de plusieurs algorithmes (Random Forest, SVM, etc.)
-
-Choix du meilleur modèle (Random Forest)
-
--Industrialisation (``)
-
-pipeline.py : Prétraitement et transformation des données
-
-train_model.py : Entraînement et sauvegarde du modèle
-
-predict.py : Chargement du modèle et prédictions
-
--Utilisation
-
--Installation des dépendances
-
+## 🚀 Installation et Exécution
+### 1️⃣ **Installation des dépendances**
+```bash
 pip install -r requirements.txt
+```
 
--Entraîner le modèle
+### 2️⃣ **Exécuter le pipeline de données**
+```bash
+python src/Pipeline.py
+```
 
-python scripts/train_model.py
+### 3️⃣ **Entraîner et évaluer le modèle**
+```bash
+python src/code_projet_final.py
+```
 
- -Faire une prédiction
+### 4️⃣ **Lancer l'API Flask pour les prédictions**
+```bash
+python deployment/app.py
+```
 
-python scripts/predict.py
+### 5️⃣ **Tester l'API avec une requête POST**
+```python
+import requests
 
--Résultats du Modèle
+url = "http://127.0.0.1:5000/predict"
+data = [{"tenure": 12, "MonthlyCharges": 75.0, "TotalCharges": 900.0, ...}]  # Compléter avec toutes les features
+response = requests.post(url, json=data)
+print(response.json())
+```
 
-Modèle
+## 🛠️ Technologies Utilisées
+- **Python** (pandas, scikit-learn, seaborn, matplotlib, numpy)
+- **Flask** (API pour le modèle)
+- **Docker** (containerisation de l'application)
+- **GitHub Actions** (CI/CD pour l'automatisation du déploiement)
 
-Accuracy
+## 📈 Résultats du Modèle
+- **Modèle Final** : Gradient Boosting (optimisé avec GridSearchCV)
+- **Accuracy** : 81.26%
+- **ROC AUC Score** : 86.57%
 
-AUC
+## 🏆 Objectifs à Long Terme
+- Déploiement sur **AWS/GCP** pour une utilisation en production.
+- Amélioration du recall pour détecter plus efficacement les churners.
 
-Random Forest
-
-0.85
-
-0.91
-
-Gradient Boosting
-
-0.83
-
-0.89
-
-Logistic Regression
-
-0.80
-
-0.86
-
-SVM
-
-0.78
-
-0.82
-
-Le Random Forest a été retenu pour ses meilleures performances sur les données.
-
-Contact
-
-Pour toute question ou amélioration du projet, n’hésitez pas à contribuer sur GitHub ! 
 
