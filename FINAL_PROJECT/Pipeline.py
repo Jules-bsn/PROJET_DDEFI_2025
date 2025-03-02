@@ -119,7 +119,7 @@ def preprocess_data(df): # Utile seulement pour les modèles : Régression logis
     """
     df = df.copy()  # Pour éviter de modifier l'original
 
-    # Séparation des colonnes numériques et dummies
+    # Séparation des colonnes numériques et dummies --> je n'ai pas adapté cette fonction avec les features engineering supplémentaires
     num_cols = ["tenure", "MonthlyCharges", "TotalCharges"]
     dummy_cols = [col for col in df.columns if df[col].nunique() == 2]  # Colonnes binaires (0/1)
 
@@ -137,6 +137,55 @@ def preprocess_data(df): # Utile seulement pour les modèles : Régression logis
         df[col] = scaler.fit_transform(df[[col]])
 
     return df
+
+# Code chat GPT pour la généralisation : A TESTER
+def preprocess_data_V2(df):
+    """
+    Fonction de prétraitement des données :
+    - Identifie les colonnes numériques à normaliser
+    - Identifie les colonnes binaires et catégorielles
+    - Applique la normalisation et l'encodage appropriés
+    - Retourne le DataFrame transformé
+    """
+    df = df.copy()  # Pour éviter de modifier l'original
+
+    # Séparation des colonnes numériques, binaires et catégorielles
+    num_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()  # Colonnes numériques
+    dummy_cols = [col for col in df.columns if df[col].nunique() == 2 and col != 'Churn']  # Colonnes binaires (0/1)
+    cat_cols = [col for col in df.columns if df[col].dtype == 'object' and col not in dummy_cols]  # Colonnes catégorielles
+
+    # Suppression des colonnes trop spécifiques (par exemple, la colonne cible 'Churn')
+    if 'Churn' in num_cols:
+        num_cols.remove('Churn')
+    
+    # Normalisation des colonnes numériques
+    scalers = {
+        "MinMaxScaler": MinMaxScaler(),  # Colonnes bornées entre un minimum et un maximum (ex: tenure, num_services)
+        "StandardScaler": StandardScaler(),  # Colonnes avec une distribution proche de normale (ex: MonthlyCharges)
+        "PowerTransformer": PowerTransformer(method='yeo-johnson')  # Colonnes avec une distribution asymétrique (ex: TotalCharges)
+    }
+    
+    # Normaliser les colonnes numériques
+    for col in num_cols:
+        if df[col].std() != 0:  # Si la variance n'est pas nulle
+            # Appliquer un scaler en fonction des caractéristiques de la distribution
+            if df[col].min() >= 0 and df[col].max() <= 100:  # Exemple : bornées entre 0 et 100
+                df[col] = scalers["MinMaxScaler"].fit_transform(df[[col]])
+            elif df[col].max() - df[col].min() > 100:  # Par exemple : des variables comme MonthlyCharges
+                df[col] = scalers["StandardScaler"].fit_transform(df[[col]])
+            else:  # Si les données sont asymétriques
+                df[col] = scalers["PowerTransformer"].fit_transform(df[[col]])
+
+    # Encodage des colonnes binaires (0/1)
+    for col in dummy_cols:
+        df[col] = df[col].map({'Yes': 1, 'No': 0})  # Si nécessaire, map les valeurs 'Yes' et 'No' en 1 et 0
+
+    # Encodage des colonnes catégorielles (si nécessaire, OneHotEncoding ou LabelEncoding)
+    for col in cat_cols:
+        df = pd.get_dummies(df, columns=[col], drop_first=True)  # OneHotEncoding
+
+    return df
+
 
 '''
 df = dataframe_brut.copy()
