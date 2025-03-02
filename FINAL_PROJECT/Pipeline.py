@@ -99,6 +99,7 @@ def verification(dataframe, phase="avant"):
     
     return True
 
+
 def pipeline(dataframe):
     df = dataframe.copy()
     df = pre_traitement(df) # Pré-traitement des données
