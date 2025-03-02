@@ -20,7 +20,6 @@ from sklearn.neighbors import KNeighborsClassifier
 import os
 
 #__
-from Feature_engineering import Ajout_colonnes_feature_engineering
 
 #__
 print(os.getcwd())
@@ -108,15 +107,6 @@ def pipeline(dataframe):
     verification(df, phase="après") # Vérification après l'encodage
     return df
 
-def pipeline_with_feature_engineering(dataframe):
-    df = dataframe.copy()
-    df = pre_traitement(df) # Pré-traitement des données
-    df = Ajout_colonnes_feature_engineering(df)
-    df = pre_traitement(df) # Pré-traitement des données
-    verification(df, phase="avant") # Vérification avant l'encodage
-    df = encoder(df) # Encodage des variables catégorielles
-    verification(df, phase="après") # Vérification après l'encodage
-    return df
 
 # A APPLIQUER seulement sur les data d'entrainement
 def preprocess_data(df): # Utile seulement pour les modèles : Régression logistique, SVM, KNN, Réseaux de neurones, techniques de réduction de dimension
@@ -146,7 +136,6 @@ def preprocess_data(df): # Utile seulement pour les modèles : Régression logis
         df[col] = scaler.fit_transform(df[[col]])
 
     return df
-
 
 '''
 df = dataframe_brut.copy()

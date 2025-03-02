@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from Pipeline import pre_traitement, pipeline
+
 os.chdir('/Users/julesbesson/Documents/CENTRALE marseille/S9/PROJET_DDEFI_2025/FINAL_PROJECT')
 dataframe_brut = pd.read_csv('customer_churn_telecom_services.csv') # chargement données
 
@@ -12,6 +14,7 @@ def Ajout_colonnes_feature_engineering(df):
     # tenure_group : Regrouper l'ancienneté
     df['tenure_group'] = pd.cut(df['tenure'], bins=[0, 12, 24, 48, 72, np.inf],
                                 labels=['0-12 mois', '12-24 mois', '24-48 mois', '48-72 mois', '72+ mois'])
+    
     df['tenure_group'] = df['tenure_group'].fillna('0-12 mois')
 
     # avg_monthly_charge : Moyenne mensuelle (attention aux divisions par zéro)
@@ -57,8 +60,19 @@ def Ajout_colonnes_feature_engineering(df):
     monthly_charge_mean = df['MonthlyCharges'].mean()
     df['high_monthly_charge'] = (df['MonthlyCharges'] > monthly_charge_mean).astype(int)
 
+
     return df
 
-df = Ajout_colonnes_feature_engineering(dataframe_brut)
-
-print(df.head(20))
+def pipeline_with_feature_engineering(dataframe):
+    df = dataframe.copy()
+    df = pre_traitement(df)
+    print('A = ', df.isna().sum())
+    df = Ajout_colonnes_feature_engineering(df)
+    print('B = ',df.isna().sum())
+    df = pipeline(df)
+    print('C = ',df.isna().sum())
+    return df
+'''
+df = dataframe_brut.copy()
+df = pipeline_with_feature_engineering(df)
+print(df.isna().sum())'''
