@@ -86,6 +86,15 @@ def preprocess_data(df):
     categorical_features = df.select_dtypes(include=['object']).columns
     df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
+    # S'assurer que toutes les colonnes du modèle sont présentes
+    model_features = model.feature_names_in_ if hasattr(model, "feature_names_in_") else []
+    for col in model_features:
+        if col not in df.columns:
+            df[col] = 0  # Ajouter les colonnes manquantes avec valeur 0
+    
+    # Réorganiser les colonnes dans le bon ordre
+    df = df[model_features]
+    
     # Normalisation
     scaler = StandardScaler()
     columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services']
