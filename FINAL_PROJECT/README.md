@@ -19,7 +19,7 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
 │   ├── evaluate_model.py      # Script pour évaluer le modèle
 │
 ├── 📂 deployment              # Dossier de déploiement (modèle entraîné et API)
-│   ├── model.pkl              # Modèle entraîné
+│   ├── final_model.pkl              # Modèle entraîné
 │   ├── api.py                 # API pour faire des prédictions
 │
 ├── 📜 requirements.txt         # Liste des dépendances nécessaires
