@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import xgboost as xgb
 
 # Chargement du modèle
-MODEL_PATH = "deployment/model.pkl"
+MODEL_PATH = "deployment/final_model.pkl"
 CLEAN_DATA_PATH = "data/processed/cleaned_data.csv"  # Données nettoyées générées par clean_data.py
 
 def load_model():
