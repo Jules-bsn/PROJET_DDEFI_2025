@@ -23,7 +23,7 @@ best_xgb = XGBClassifier(**best_xgb_params, eval_metric='logloss', use_label_enc
 best_xgb.fit(X_train, y_train)
 
 # 📁 Sauvegarde du modèle optimisé
-joblib.dump(best_xgb, 'deployment/xgboost_model.pkl')
+joblib.dump(best_xgb, 'deployment/final_model.pkl')
 
 # 📌 Évaluation avec validation croisée
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
