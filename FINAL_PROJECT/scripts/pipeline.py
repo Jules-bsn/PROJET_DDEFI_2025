@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 def load_data(file_path):
@@ -12,7 +12,6 @@ def load_data(file_path):
 
 def clean_data(df):
     """Nettoie et transforme les données pour le modèle."""
-    # Suppression des doublons
     df.drop_duplicates(inplace=True)
     
     # Gestion des valeurs manquantes uniquement sur les colonnes numériques
@@ -49,6 +48,13 @@ def clean_data(df):
 
 def remove_multicollinearity(df, threshold=10.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
+    # Assurer que toutes les colonnes sont numériques
+    df = df.astype(float)
+    
+    # Remplacer les valeurs infinies par NaN et les remplir avec la médiane
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df.fillna(df.median(), inplace=True)
+    
     vif_data = pd.DataFrame()
     vif_data["Feature"] = df.columns
     vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
