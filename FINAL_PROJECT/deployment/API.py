@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 import logging
 import os
-from data_processing_pipeline import clean_data, normalize_features
+from scripts/pipeline import clean_data, normalize_features
 
 # Configuration des logs
 logging.basicConfig(level=logging.INFO)
