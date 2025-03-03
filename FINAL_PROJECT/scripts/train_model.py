@@ -5,7 +5,7 @@ from xgboost import XGBClassifier
 import joblib
 
 # Chargement des données pré-traitées
-df = pd.read_csv('../data/processed/cleaned_data.csv')
+df = pd.read_csv('data/processed/cleaned_data.csv')
 y = df['Churn']
 X = df.drop(columns=['Churn'])
 
