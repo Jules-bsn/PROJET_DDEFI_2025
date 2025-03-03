@@ -11,7 +11,7 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
 │   ├── 📂 processed           # Contient les données nettoyées et préparées
 │
 ├── 📂 pipeline                # Contient le pipeline de prétraitement
-│   ├── pipelin.py          # Pipeline de transformation des données
+│   ├── pipeline.py          # Pipeline de transformation des données
 │
 ├── 📂 notebook               # Contient les recherches et analyses sur la pipeline et le modéle choisi 
 │
