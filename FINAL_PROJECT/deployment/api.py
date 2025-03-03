@@ -5,7 +5,7 @@ import numpy as np
 import traceback
 import logging
 import os
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 # Configuration des logs
 logging.basicConfig(level=logging.INFO)
@@ -75,7 +75,7 @@ def preprocess_data(df):
         lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1)
     
     # Suppression des colonnes inutiles
-    drop_columns = ['PhoneService', 'engagement_score', 'tenure', 'MonthlyCharges',
+    drop_columns = ['CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',
                     'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
                     'StreamingMovies_No internet service', 'StreamingTV_No internet service',
                     'TechSupport_No internet service', 'DeviceProtection_No internet service',
@@ -84,7 +84,11 @@ def preprocess_data(df):
     
     # Encodage des variables catégoriques
     categorical_features = df.select_dtypes(include=['object']).columns
-    df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
+    for col in categorical_features:
+        if df[col].nunique() == 2:
+            df[col] = LabelEncoder().fit_transform(df[col])
+        else:
+            df = pd.get_dummies(df, columns=[col], drop_first=True)
     
     # S'assurer que toutes les colonnes du modèle sont présentes
     model_features = model.feature_names_in_ if hasattr(model, "feature_names_in_") else []
