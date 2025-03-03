@@ -1,68 +1,98 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
+import numpy as np
 import traceback
+import logging
+import os
+from sklearn.preprocessing import StandardScaler
+
+# Configuration des logs
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
-# Charger le modèle
-try:
-    model = joblib.load("deployment/final_model.pkl")
-    print("Modèle chargé avec succès !")
-except Exception as e:
-    print("Erreur lors du chargement du modèle :", str(e))
+# Définir le chemin du modèle
+MODEL_PATH = "deployment/final_model.pkl"
+
+# Charger le modèle en toute sécurité
+if os.path.exists(MODEL_PATH):
+    try:
+        model = joblib.load(MODEL_PATH)
+        logging.info("✅ Modèle chargé avec succès !")
+    except Exception as e:
+        logging.error(f"❌ Erreur lors du chargement du modèle : {str(e)}")
+        model = None
+else:
+    logging.error(f"❌ Modèle introuvable à l'emplacement : {MODEL_PATH}")
     model = None
 
 @app.route('/predict', methods=['POST'])
 def predict():
     if model is None:
-        return jsonify({"error": "Modèle non chargé"}), 500
+        return jsonify({"error": "Modèle non chargé ou introuvable"}), 500
     
     try:
         data = request.get_json()
-        
-        # Vérifier que les données sont bien reçues
+        logging.info(f"🔹 Requête reçue : {data}")
+
         if not isinstance(data, list):
             return jsonify({"error": "Les données doivent être une liste de dictionnaires"}), 400
-        
+
         df = pd.DataFrame(data)
-        
-        # Vérifier que toutes les colonnes nécessaires sont présentes
-        expected_features = ["gender", "SeniorCitizen", "Partner", "Dependents", "tenure",
-                             "PhoneService", "MultipleLines", "InternetService", "OnlineSecurity", 
-                             "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", 
-                             "StreamingMovies", "Contract", "PaperlessBilling", "PaymentMethod", 
-                             "MonthlyCharges", "TotalCharges"]
-        
-        missing_features = [col for col in expected_features if col not in df.columns]
-        if missing_features:
-            return jsonify({"error": "Colonnes manquantes", "missing_features": missing_features}), 400
-        
-        # Appliquer les mêmes transformations que lors de l'entraînement du modèle
+        logging.info(f"🔹 Données converties en DataFrame :\n{df.head()}")
+
+        # Prétraitement des données
         df = preprocess_data(df)
+        logging.info(f"🔹 Données après preprocessing :\n{df.head()}")
+
+        # Vérifier si les colonnes correspondent à celles du modèle
+        model_features = model.feature_names_in_ if hasattr(model, "feature_names_in_") else df.columns
+        missing_for_model = [col for col in model_features if col not in df.columns]
+        if missing_for_model:
+            return jsonify({"error": "Colonnes manquantes après prétraitement", "missing_features": missing_for_model}), 400
         
+        df = df[model_features]
+
         # Prédiction
         prediction = model.predict(df)
         return jsonify({"prediction": prediction.tolist()})
     
     except Exception as e:
-        print("Erreur lors de la prédiction :", str(e))
-        print(traceback.format_exc())
+        logging.error(f"❌ Erreur lors de la prédiction : {str(e)}", exc_info=True)
         return jsonify({"error": "Erreur interne du serveur"}), 500
 
 def preprocess_data(df):
-    """Applique les mêmes transformations que dans clean_data.py"""
-    # Exemple de transformations (à adapter selon clean_data.py)
+    """Applique les transformations nécessaires avant d'envoyer les données au modèle."""
     df = df.copy()
     
-    # Convertir les colonnes numériques si elles sont mal typées
-    df["SeniorCitizen"] = df["SeniorCitizen"].astype(int)
-    df["tenure"] = df["tenure"].astype(float)
-    df["MonthlyCharges"] = df["MonthlyCharges"].astype(float)
-    df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors='coerce').fillna(0)
+    # Feature Engineering
+    df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)
+    df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
+    df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
+                             'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
+                             'TechSupport', 'StreamingTV', 'StreamingMovies']].apply(
+        lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1)
     
-    # Encodage des variables catégorielles (simplifié)
-    df = pd.get_dummies(df, drop_first=True)
+    # Suppression des colonnes inutiles
+    drop_columns = ['PhoneService', 'engagement_score', 'tenure', 'MonthlyCharges',
+                    'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
+                    'StreamingMovies_No internet service', 'StreamingTV_No internet service',
+                    'TechSupport_No internet service', 'DeviceProtection_No internet service',
+                    'InternetService_No']
+    df.drop(columns=[col for col in drop_columns if col in df.columns], errors='ignore', inplace=True)
+    
+    # Encodage des variables catégoriques
+    categorical_features = df.select_dtypes(include=['object']).columns
+    df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
+    
+    # Normalisation
+    scaler = StandardScaler()
+    columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services']
+    df[columns_to_scale] = scaler.fit_transform(df[columns_to_scale])
+    
+    # Gestion des valeurs manquantes
+    df.fillna(df.select_dtypes(include=[np.number]).median(), inplace=True)
     
     return df
 
