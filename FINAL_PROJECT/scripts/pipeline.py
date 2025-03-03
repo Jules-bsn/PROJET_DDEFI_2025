@@ -48,8 +48,8 @@ def clean_data(df):
 
 def remove_multicollinearity(df, threshold=10.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
-    # Assurer que toutes les colonnes sont numériques
-    df = df.astype(float)
+    # Vérifier que toutes les colonnes sont numériques
+    df = df.select_dtypes(include=[np.number])
     
     # Remplacer les valeurs infinies par NaN et les remplir avec la médiane
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -69,10 +69,12 @@ def remove_multicollinearity(df, threshold=10.0):
     return df
 
 def normalize_features(df):
-    """Normalise les variables numériques clés."""
+    """Normalise les variables numériques clés, si elles existent dans le DataFrame."""
     scaler = StandardScaler()
     columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services', 'engagement_score']
-    df[columns_to_scale] = scaler.fit_transform(df[columns_to_scale])
+    existing_columns = [col for col in columns_to_scale if col in df.columns]
+    if existing_columns:
+        df[existing_columns] = scaler.fit_transform(df[existing_columns])
     return df
 
 def process_pipeline(file_path, output_path):
