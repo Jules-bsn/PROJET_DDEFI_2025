@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
-from data_processing_pipeline import process_pipeline
+from pipeline import process_pipeline
 import os
 
 # 📁 Définition des chemins
