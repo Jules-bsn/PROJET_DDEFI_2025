@@ -7,7 +7,7 @@ import xgboost as xgb
 
 # Chargement du modèle
 MODEL_PATH = "deployment/model.pkl"
-CLEAN_DATA_PATH = "data/processed/clean_data.csv"  # Données nettoyées générées par clean_data.py
+CLEAN_DATA_PATH = "data/processed/cleaned_data.csv"  # Données nettoyées générées par clean_data.py
 
 def load_model():
     try:
