@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 
 # Définir le chemin du modèle
-MODEL_PATH = "deployment/xgboost_model.pkl"
+MODEL_PATH = "deployment/final_model.pkl"
 
 # Charger le modèle en toute sécurité
 if os.path.exists(MODEL_PATH):
