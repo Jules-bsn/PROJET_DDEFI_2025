@@ -3,6 +3,7 @@ import numpy as np
 import os
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+from imblearn.over_sampling import SMOTE
 
 def load_data(file_path):
     """Charge le dataset depuis le fichier spécifié."""
@@ -77,12 +78,30 @@ def normalize_features(df):
         df[existing_columns] = scaler.fit_transform(df[existing_columns])
     return df
 
+def balance_classes(X, y):
+    """Applique SMOTE pour équilibrer les classes."""
+    smote = SMOTE(random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X, y)
+    return X_resampled, y_resampled
+
 def process_pipeline(file_path, output_path):
     """Exécute le pipeline de transformation et sauvegarde les données nettoyées."""
     df = load_data(file_path)
     df = clean_data(df)
     df = remove_multicollinearity(df)
     df = normalize_features(df)
+    
+    # Séparer les features et la target
+    y = df['Churn']
+    X = df.drop(columns=['Churn'])
+    
+    # Appliquer SMOTE
+    X, y = balance_classes(X, y)
+    
+    # Convertir en DataFrame
+    df_resampled = pd.DataFrame(X, columns=X.columns)
+    df_resampled['Churn'] = y
+    
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    df.to_csv(output_path, index=False)
-    print(f"✅ Fichier nettoyé sauvegardé : {output_path}")
+    df_resampled.to_csv(output_path, index=False)
+    print(f"✅ Fichier nettoyé et équilibré sauvegardé : {output_path}")
