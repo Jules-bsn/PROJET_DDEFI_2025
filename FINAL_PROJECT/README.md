@@ -29,7 +29,7 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
 ├── 📜 README.md                # Explication complète du projet
 ```
 
-## 🚀 Installation
+##  Installation
 
 1. **Cloner le projet**
    ```bash
@@ -42,29 +42,29 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
    bash setup.sh
    ```
 
-## 🛠️ Utilisation
+##  Utilisation
 
-### 1️⃣ Préparation des données
+###  Préparation des données
 Avant d'entraîner le modèle, il faut exécuter le script `clean_data.py` pour nettoyer et préparer les données :
 ```bash
 python scripts/clean_data.py
 ```
 Cela générera les données nettoyées dans `data/processed/`.
 
-### 2️⃣ Entraînement du modèle
+###  Entraînement du modèle
 Lancer l'entraînement du modèle :
 ```bash
 python scripts/train_model.py
 ```
 Le modèle entraîné sera sauvegardé dans `deployment/model.pkl`.
 
-### 3️⃣ Évaluation du modèle
+###  Évaluation du modèle
 Une fois le modèle entraîné, il est possible de l'évaluer avec :
 ```bash
 python scripts/evaluate_model.py
 ```
 
-### 4️⃣ Déploiement
+###  Déploiement
 Un script `api.py` est fourni pour exposer le modèle via une API Flask.
 ```bash
 python deployment/api.py
@@ -79,4 +79,4 @@ L'API tournera localement et pourra être utilisée pour faire des prédictions.
 
 ---
 
-🚀 **Projet réalisé dans le cadre de DDEFI 2025**
+ **Projet réalisé dans le cadre de DDEFI 2025**
