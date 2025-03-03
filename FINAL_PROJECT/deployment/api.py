@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 
 app = Flask(__name__)
-model = joblib.load('final_model.pkl')
+model = joblib.load("deployment/final_model.pkl")
 
 @app.route('/predict', methods=['POST'])
 def predict():
