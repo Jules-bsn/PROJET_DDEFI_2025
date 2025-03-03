@@ -37,21 +37,21 @@ df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService',
 
 # 📉 Suppression des colonnes non pertinentes identifiées lors de l'analyse
 drop_columns = [
-    'CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',  # Suppression après feature engineering
+    'CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',
     'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
     'StreamingMovies_No internet service', 'StreamingTV_No internet service',
     'TechSupport_No internet service', 'DeviceProtection_No internet service',
-    'InternetService_No'  # Colinéarité parfaite
+    'InternetService_No'
 ]
 df.drop(columns=drop_columns, errors='ignore', inplace=True)
 
 # 💡 Encodage des variables catégoriques
 categorical_features = df.select_dtypes(include=['object']).columns
 for col in categorical_features:
-    if df[col].nunique() == 2:  # Encodage LabelEncoder pour les variables binaires
+    if df[col].nunique() == 2:
         df[col] = LabelEncoder().fit_transform(df[col])
     else:
-        df = pd.get_dummies(df, columns=[col], drop_first=True)  # OneHotEncoding pour le reste
+        df = pd.get_dummies(df, columns=[col], drop_first=True)
 
 # 🔄 Normalisation des variables importantes
 scaler = StandardScaler()
