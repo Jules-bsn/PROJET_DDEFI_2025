@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 # 📈 Définition des chemins d'accès
 RAW_DATA_PATH = "data/raw/customer_churn_telecom_services.csv"
@@ -17,6 +17,12 @@ df = pd.read_csv(RAW_DATA_PATH)
 # 🔄 Nettoyage des noms de colonnes
 df.columns = df.columns.str.strip()
 
+# 🔄 Suppression des doublons
+df.drop_duplicates(inplace=True)
+
+# 🔍 Gestion des valeurs manquantes
+df.fillna(df.median(numeric_only=True), inplace=True)  # Imputation avec la médiane
+
 # 🔄 Conversion de la colonne cible 'Churn' en valeurs numériques
 df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
 
@@ -31,7 +37,7 @@ df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService',
 
 # 📉 Suppression des colonnes non pertinentes identifiées lors de l'analyse
 drop_columns = [
-    'PhoneService', 'engagement_score', 'tenure', 'MonthlyCharges',  # Suppression après feature engineering
+    'CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',  # Suppression après feature engineering
     'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
     'StreamingMovies_No internet service', 'StreamingTV_No internet service',
     'TechSupport_No internet service', 'DeviceProtection_No internet service',
@@ -41,15 +47,16 @@ df.drop(columns=drop_columns, errors='ignore', inplace=True)
 
 # 💡 Encodage des variables catégoriques
 categorical_features = df.select_dtypes(include=['object']).columns
-df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
+for col in categorical_features:
+    if df[col].nunique() == 2:  # Encodage LabelEncoder pour les variables binaires
+        df[col] = LabelEncoder().fit_transform(df[col])
+    else:
+        df = pd.get_dummies(df, columns=[col], drop_first=True)  # OneHotEncoding pour le reste
 
 # 🔄 Normalisation des variables importantes
 scaler = StandardScaler()
 columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services']
 df[columns_to_scale] = scaler.fit_transform(df[columns_to_scale])
-
-# 🛠️ Remplacement des valeurs manquantes uniquement sur les colonnes numériques
-df.fillna(df.select_dtypes(include=[np.number]).median(), inplace=True)
 
 # 📂 Sauvegarde des données nettoyées
 df.to_csv(PROCESSED_DATA_PATH, index=False)
