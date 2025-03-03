@@ -69,7 +69,8 @@ python deployment/api.py
 ```
 L'API tournera localement et pourra être utilisée pour faire des prédictions.
 ```bash
-mettre la commande suivante dans un nouveau terminal: curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d '[
+mettre la commande suivante dans un nouveau terminal: 
+curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d '[
     {"gender": "Male", "SeniorCitizen": 0, "Partner": "Yes", "Dependents": "No", 
      "tenure": 12, "PhoneService": "Yes", "MultipleLines": "No", "InternetService": "Fiber optic",
      "OnlineSecurity": "No", "OnlineBackup": "No", "DeviceProtection": "No", "TechSupport": "No",
