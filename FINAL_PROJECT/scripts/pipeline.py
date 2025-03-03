@@ -42,11 +42,11 @@ def clean_data(df):
     df.drop(columns=drop_columns, errors='ignore', inplace=True)
     
     # Encodage des variables catégoriques
-    df = pd.get_dummies(df, drop_first=True)
+    df = pd.get_dummies(df, drop_first=False)
     
     return df
 
-def remove_multicollinearity(df, threshold=10.0):
+def remove_multicollinearity(df, threshold=15.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
     # Vérifier que toutes les colonnes sont numériques
     df = df.select_dtypes(include=[np.number])
