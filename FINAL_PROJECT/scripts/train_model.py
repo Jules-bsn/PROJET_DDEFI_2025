@@ -1,22 +1,34 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score, RandomizedSearchCV
+from sklearn.model_selection import train_test_split, StratifiedKFold, RandomizedSearchCV
 from xgboost import XGBClassifier
+from imblearn.over_sampling import SMOTE
 import joblib
 
-# Chargement des données pré-traitées
+# 📚 Chargement des données pré-traitées
 df = pd.read_csv('data/processed/cleaned_data.csv')
 y = df['Churn']
 X = df.drop(columns=['Churn'])
 
-# Séparation des données
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# 📌 Application de SMOTE pour équilibrer les classes
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
 
-# Optimisation des hyperparamètres
-param_grid = {'learning_rate': [0.01, 0.05, 0.1, 0.2], 'max_depth': [3, 5, 7, 10]}
-xgb_search = RandomizedSearchCV(XGBClassifier(eval_metric='logloss'), param_grid, n_iter=10, cv=5, scoring='roc_auc', random_state=42)
-xgb_search.fit(X_train, y_train)
+# 📌 Séparation des données
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, stratify=y_resampled, random_state=42)
 
-# Sauvegarde du modèle optimisé
-joblib.dump(xgb_search.best_estimator_, 'deployment/final_model.pkl')
-print("Modèle sauvegardé avec succès!")
+# 🎯 Optimisation des hyperparamètres XGBoost
+best_xgb_params = {'max_depth': 10, 'learning_rate': 0.2}
+best_xgb = XGBClassifier(**best_xgb_params, eval_metric='logloss', use_label_encoder=False)
+best_xgb.fit(X_train, y_train)
+
+# 📁 Sauvegarde du modèle optimisé
+joblib.dump(best_xgb, 'deployment/xgboost_model.pkl')
+
+# 📌 Évaluation avec validation croisée
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = RandomizedSearchCV(best_xgb, param_distributions={}, n_iter=1, cv=cv, scoring='roc_auc')
+scores.fit(X_resampled, y_resampled)
+print(f"✅ New Mean ROC-AUC: {scores.best_score_:.4f}")
+
+print("📂 Modèle XGBoost optimisé et sauvegardé !")
