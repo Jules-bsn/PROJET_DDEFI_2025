@@ -1,8 +1,13 @@
+flask
+joblib
+docker
 pandas
 numpy
 matplotlib
 seaborn
 scikit-learn
-flask
-joblib
-docker
+imblearn
+xgboost
+shap
+statsmodels
+lightgbm
