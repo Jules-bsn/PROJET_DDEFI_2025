@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 def load_data(file_path):
     """Charge le dataset depuis le fichier spécifié."""
@@ -23,6 +24,7 @@ def clean_data(df):
     
     # Création de nouvelles features
     df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)  # Évite division par zéro
+    df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
     df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
     df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
                              'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
@@ -41,19 +43,29 @@ def clean_data(df):
     df.drop(columns=drop_columns, errors='ignore', inplace=True)
     
     # Encodage des variables catégoriques
-    categorical_features = df.select_dtypes(include=['object']).columns
-    for col in categorical_features:
-        if df[col].nunique() == 2:
-            df[col] = LabelEncoder().fit_transform(df[col])
-        else:
-            df = pd.get_dummies(df, columns=[col], drop_first=True)
+    df = pd.get_dummies(df, drop_first=True)
+    
+    return df
+
+def remove_multicollinearity(df, threshold=10.0):
+    """Supprime les variables fortement colinéaires en utilisant le VIF."""
+    vif_data = pd.DataFrame()
+    vif_data["Feature"] = df.columns
+    vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
+    
+    while vif_data["VIF"].max() > threshold:
+        feature_to_remove = vif_data.loc[vif_data["VIF"].idxmax(), "Feature"]
+        df = df.drop(columns=[feature_to_remove])
+        vif_data = pd.DataFrame()
+        vif_data["Feature"] = df.columns
+        vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
     
     return df
 
 def normalize_features(df):
     """Normalise les variables numériques clés."""
     scaler = StandardScaler()
-    columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services']
+    columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services', 'engagement_score']
     df[columns_to_scale] = scaler.fit_transform(df[columns_to_scale])
     return df
 
@@ -61,6 +73,7 @@ def process_pipeline(file_path, output_path):
     """Exécute le pipeline de transformation et sauvegarde les données nettoyées."""
     df = load_data(file_path)
     df = clean_data(df)
+    df = remove_multicollinearity(df)
     df = normalize_features(df)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False)
