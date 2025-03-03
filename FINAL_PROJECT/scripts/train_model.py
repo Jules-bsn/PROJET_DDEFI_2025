@@ -18,5 +18,5 @@ xgb_search = RandomizedSearchCV(XGBClassifier(eval_metric='logloss'), param_grid
 xgb_search.fit(X_train, y_train)
 
 # Sauvegarde du modèle optimisé
-joblib.dump(xgb_search.best_estimator_, '../deployment/final_model.pkl')
+joblib.dump(xgb_search.best_estimator_, 'deployment/final_model.pkl')
 print("Modèle sauvegardé avec succès!")
