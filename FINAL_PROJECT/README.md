@@ -1,97 +1,82 @@
-# Détection du Churn - Projet DDEFI 2025
+# Projet DDEFI 2025 - FINAL_PROJECT
 
-Ce projet vise à prédire le churn des clients en utilisant des techniques de Machine Learning. Il comprend des étapes de prétraitement des données, de sélection de features, d'entraînement et d'optimisation de modèle.
+Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse et la prédiction du churn dans un dataset télécom.
 
-## 📁 Structure du projet
+## 📂 Structure du projet
 
 ```
-├── data/
-│   ├── raw/               # Données brutes
-│   ├── processed/         # Données prétraitées
-├── scripts/
-│   ├── clean_data.py      # Script de nettoyage et prétraitement des données
-│   ├── train_model.py     # Entraînement et évaluation du modèle
-│   ├── inference.py       # Prédiction sur de nouvelles données
-├── pipeline/
-│   ├── feature_engineering.py  # Transformation des features
-│   ├── model_training.py       # Entraînement des modèles optimisés
-│   ├── evaluation.py           # Évaluation des modèles
-├── deployment/
-│   ├── app.py              # API pour le modèle
-│   ├── Dockerfile          # Fichier Docker pour déploiement
-│   ├── requirements.txt    # Dépendances
-│   ├── setup.sh            # Script d'installation
-├── notebooks/
-│   ├── exploration.ipynb   # Analyse exploratoire des données
-│   ├── model_training.ipynb # Expérimentation sur le modèle
-│   ├── evaluation.ipynb    # Évaluation des performances
-├── README.md               # Guide du projet
+📂 Projet_Final
+├── 📂 data
+│   ├── 📂 raw                 # Contient les données d’origine
+│   ├── 📂 processed           # Contient les données nettoyées et préparées
+│
+├── 📂 pipeline                # Contient le pipeline de prétraitement
+│   ├── pipelin.py          # Pipeline de transformation des données
+│
+├── 📂 notebook               # Contient les recherches et analyses sur la pipeline et le modéle choisi 
+│
+├── 📂 scripts                 # Scripts Python pour l'entraînement et l'évaluation
+│   ├── clean_data.py          # Script pour nettoyer et préparer les données
+│   ├── train_model.py         # Script pour entraîner le modèle
+│   ├── evaluate_model.py      # Script pour évaluer le modèle
+│
+├── 📂 deployment              # Dossier de déploiement (modèle entraîné et API)
+│   ├── model.pkl              # Modèle entraîné
+│   ├── api.py                 # API pour faire des prédictions
+│
+├── 📜 requirements.txt         # Liste des dépendances nécessaires
+├── 📜 setup.sh                 # Script pour installer l’environnement
+├── 📜 README.md                # Explication complète du projet
 ```
 
-## 🚀 Installation et Configuration
+## 🚀 Installation
 
-1. **Cloner le dépôt :**
+1. **Cloner le projet**
    ```bash
-   git clone https://github.com/ton-repo.git
-   cd ton-repo
+   git clone https://github.com/Jules-bsn/PROJET_DDEFI_2025.git
+   cd PROJET_DDEFI_2025/FINAL_PROJECT
    ```
 
-2. **Créer un environnement virtuel :**
+2. **Installer les dépendances**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # sous Mac/Linux
-   venv\Scripts\activate   # sous Windows
+   bash setup.sh
    ```
 
-3. **Installer les dépendances :**
-   ```bash
-   pip install -r deployment/requirements.txt
-   ```
+## 🛠️ Utilisation
 
-4. **Exécuter le script de nettoyage des données :**
-   ```bash
-   python scripts/clean_data.py
-   ```
+### 1️⃣ Préparation des données
+Avant d'entraîner le modèle, il faut exécuter le script `clean_data.py` pour nettoyer et préparer les données :
+```bash
+python scripts/clean_data.py
+```
+Cela générera les données nettoyées dans `data/processed/`.
 
-5. **Lancer l'entraînement du modèle :**
-   ```bash
-   python scripts/train_model.py
-   ```
+### 2️⃣ Entraînement du modèle
+Lancer l'entraînement du modèle :
+```bash
+python scripts/train_model.py
+```
+Le modèle entraîné sera sauvegardé dans `deployment/model.pkl`.
 
-6. **Effectuer des prédictions :**
-   ```bash
-   python scripts/inference.py --input_file data/processed/test_data.csv
-   ```
+### 3️⃣ Évaluation du modèle
+Une fois le modèle entraîné, il est possible de l'évaluer avec :
+```bash
+python scripts/evaluate_model.py
+```
 
-## 📊 Résumé du Modèle
+### 4️⃣ Déploiement
+Un script `api.py` est fourni pour exposer le modèle via une API Flask.
+```bash
+python deployment/api.py
+```
+L'API tournera localement et pourra être utilisée pour faire des prédictions.
 
-- **Modèle sélectionné** : XGBoost optimisé
-- **Meilleurs hyperparamètres** :
-  - `learning_rate = 0.2`
-  - `max_depth = 10`
-- **Performance** :
-  - **ROC-AUC** = 0.92
-
-## 🚀 Déploiement
-
-1. **Construire l’image Docker :**
-   ```bash
-   docker build -t churn-prediction .
-   ```
-2. **Lancer le conteneur :**
-   ```bash
-   docker run -p 5000:5000 churn-prediction
-   ```
-3. **Tester l'API :**
-   ```bash
-   curl -X POST http://localhost:5000/predict -d '{"feature1": value1, "feature2": value2}'
-   ```
-
-## 📌 Contributeurs
-
-- **[Ton Nom]** - Data Scientist
-- **[Collaborateurs]** - Développeurs & Analysts
+## 📜 Notes
+- `clean_data.py` assure le nettoyage des données et leur transformation avant de les passer dans le pipeline.
+- `train_model.py` utilise le meilleur modèle identifié avec les hyperparamètres optimaux.
+- `evaluate_model.py` génère un rapport d’évaluation basé sur des métriques de classification.
+- `api.py` permet d'envoyer des requêtes pour prédire le churn sur de nouvelles données.
 
 ---
 
-Ce projet est un travail en cours. N'hésite pas à proposer des améliorations via des issues ou des PRs. 🚀
+🚀 **Projet réalisé dans le cadre de DDEFI 2025**
