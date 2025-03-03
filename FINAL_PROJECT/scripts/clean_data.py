@@ -44,8 +44,8 @@ scaler = StandardScaler()
 columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services']
 df[columns_to_scale] = scaler.fit_transform(df[columns_to_scale])
 
-# 📌 Remplacement des valeurs manquantes
-df.fillna(df.median(), inplace=True)
+# 📌 Remplacement des valeurs manquantes uniquement sur les colonnes numériques
+df.fillna(df.select_dtypes(include=[np.number]).median(), inplace=True)
 
 # 📌 Sauvegarde des données nettoyées
 df.to_csv(PROCESSED_DATA_PATH, index=False)
