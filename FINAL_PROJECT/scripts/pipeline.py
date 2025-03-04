@@ -23,14 +23,18 @@ def clean_data(df):
     df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     
     # Création de nouvelles features
-    df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)  # Évite division par zéro
-    df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
-    df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
-    df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
-                             'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
-                             'TechSupport', 'StreamingTV', 'StreamingMovies']].apply(
-        lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1
-    )
+    if 'TotalCharges' in df.columns and 'tenure' in df.columns:
+        df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)  # Évite division par zéro
+    if 'tenure' in df.columns and 'PaperlessBilling' in df.columns and 'Contract' in df.columns:
+        df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
+    if 'Contract' in df.columns:
+        df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
+    if all(col in df.columns for col in ['PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']):
+        df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
+                                 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
+                                 'TechSupport', 'StreamingTV', 'StreamingMovies']].apply(
+            lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1
+        )
     
     # Suppression des colonnes non pertinentes
     drop_columns = [
@@ -40,19 +44,16 @@ def clean_data(df):
         'TechSupport_No internet service', 'DeviceProtection_No internet service',
         'InternetService_No'
     ]
-    df.drop(columns=drop_columns, errors='ignore', inplace=True)
+    df.drop(columns=[col for col in drop_columns if col in df.columns], errors='ignore', inplace=True)
     
     # Encodage des variables catégoriques
     df = pd.get_dummies(df, drop_first=False)
     
     return df
 
-def remove_multicollinearity(df, threshold=15.0):
+def remove_multicollinearity(df, threshold=10.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
-    # Vérifier que toutes les colonnes sont numériques
     df = df.select_dtypes(include=[np.number])
-    
-    # Remplacer les valeurs infinies par NaN et les remplir avec la médiane
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
     
@@ -91,14 +92,11 @@ def process_pipeline(file_path, output_path):
     df = remove_multicollinearity(df)
     df = normalize_features(df)
     
-    # Séparer les features et la target
     y = df['Churn']
     X = df.drop(columns=['Churn'])
     
-    # Appliquer SMOTE
     X, y = balance_classes(X, y)
     
-    # Convertir en DataFrame
     df_resampled = pd.DataFrame(X, columns=X.columns)
     df_resampled['Churn'] = y
     
