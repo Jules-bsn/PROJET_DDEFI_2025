@@ -32,7 +32,10 @@ def load_data():
     
     X = data.drop(columns=['Churn'])  # Supposons que 'Churn' est la cible
     y = data['Churn']
+    
+    # Diviser les données en ensemble de test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+    
     print(f"✅ Données divisées : {X_test.shape[0]} échantillons pour le test\n")
     return X_test, y_test
 
