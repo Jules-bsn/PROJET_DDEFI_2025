@@ -45,16 +45,16 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
 ###  Préparation des données
 Avant d'entraîner le modèle, il faut exécuter le script `clean_data.py` pour nettoyer et préparer les données :
 ```bash
-python scripts/clean_data.py
+python scripts/data_cleaning.py
 ```
 Cela générera les données nettoyées dans `data/processed/`.
 
 ###  Entraînement du modèle
 Lancer l'entraînement du modèle :
 ```bash
-python scripts/train_model.py
+python scripts/train_model_xgboost.py
 ```
-Le modèle entraîné sera sauvegardé dans `deployment/model.pkl`.
+Le modèle entraîné sera sauvegardé dans `deployment/final_model.pkl`.
 
 ###  Évaluation du modèle
 Une fois le modèle entraîné, il est possible de l'évaluer avec :
@@ -65,7 +65,7 @@ python scripts/evaluate_model.py
 ###  Déploiement
 Un script `api.py` est fourni pour exposer le modèle via une API Flask.
 ```bash
-python deployment/api.py
+python deployment/API.py
 ```
 L'API tournera localement et pourra être utilisée pour faire des prédictions.
 Mettre la commande suivante dans un nouveau terminal: 
