@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from imblearn.over_sampling import SMOTE
 
@@ -23,28 +22,37 @@ def clean_data(df):
     # Conversion de la colonne cible 'Churn' en valeurs numériques
     df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     
-    # Encodage des variables catégoriques
-    label_encoders = {}
-    for col in df.select_dtypes(include=['object']).columns:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
-        label_encoders[col] = le
-    
     # Création de nouvelles features
     df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)  # Évite division par zéro
-    df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'] * 1.2 + df['Contract'] * 2
-    df['is_long_term_contract'] = (df['Contract'] == 2).astype(int)
+    df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
+    df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
+    df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
+                             'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
+                             'TechSupport', 'StreamingTV', 'StreamingMovies']].apply(
+        lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1
+    )
     
-    # Suppression des colonnes avec très faible corrélation avec Churn
-    cor_matrix = df.corrwith(df['Churn']).abs()
-    low_correlation_features = cor_matrix[cor_matrix < 0.05].index
-    df.drop(columns=low_correlation_features, inplace=True)
+    # Suppression des colonnes non pertinentes
+    drop_columns = [
+        'CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',
+        'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
+        'StreamingMovies_No internet service', 'StreamingTV_No internet service',
+        'TechSupport_No internet service', 'DeviceProtection_No internet service',
+        'InternetService_No'
+    ]
+    df.drop(columns=drop_columns, errors='ignore', inplace=True)
+    
+    # Encodage des variables catégoriques
+    df = pd.get_dummies(df, drop_first=False)
     
     return df
 
-def remove_multicollinearity(df, threshold=10.0):
+def remove_multicollinearity(df, threshold=15.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
+    # Vérifier que toutes les colonnes sont numériques
     df = df.select_dtypes(include=[np.number])
+    
+    # Remplacer les valeurs infinies par NaN et les remplir avec la médiane
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
     
@@ -62,9 +70,9 @@ def remove_multicollinearity(df, threshold=10.0):
     return df
 
 def normalize_features(df):
-    """Normalise les variables numériques clés."""
+    """Normalise les variables numériques clés, si elles existent dans le DataFrame."""
     scaler = StandardScaler()
-    columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'engagement_score']
+    columns_to_scale = ['TotalCharges', 'avg_monthly_charge', 'num_services', 'engagement_score']
     existing_columns = [col for col in columns_to_scale if col in df.columns]
     if existing_columns:
         df[existing_columns] = scaler.fit_transform(df[existing_columns])
