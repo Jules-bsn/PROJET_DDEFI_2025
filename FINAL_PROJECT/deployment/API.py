@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 import logging
 import os
-from scripts/pipeline import clean_data, normalize_features
+from pipeline import clean_data, normalize_features, remove_multicollinearity
 
 # Configuration des logs
 logging.basicConfig(level=logging.INFO)
@@ -43,6 +43,7 @@ def predict():
         
         # Prétraitement des données
         df = clean_data(df)
+        df = remove_multicollinearity(df)
         df = normalize_features(df)
         logging.info(f"🔹 Données après preprocessing :\n{df.head()}")
         
