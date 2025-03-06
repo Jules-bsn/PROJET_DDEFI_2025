@@ -20,8 +20,7 @@ def clean_data(df):
     df[df_numeric.columns] = df_numeric.fillna(df_numeric.median())
     
     # Conversion de la colonne cible 'Churn' en valeurs numériques
-    if 'Churn' in df.columns:
-        df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
+    df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     
     # Création de nouvelles features
     if 'TotalCharges' in df.columns and 'tenure' in df.columns:
