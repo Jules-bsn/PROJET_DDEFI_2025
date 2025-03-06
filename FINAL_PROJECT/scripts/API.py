@@ -25,6 +25,9 @@ def predict():
         df = pd.DataFrame([data])  # Convertir la ligne unique en DataFrame
         print("🔹 Données reçues avant traitement :", df.head())
         
+        # S'assurer que les colonnes sont de type string avant d'utiliser str.strip()
+        df.columns = df.columns.astype(str)
+        
         # Appliquer le même traitement que dans data_cleaner
         df = preprocess_data(df)
         print("🔹 Données après prétraitement :", df.head())
