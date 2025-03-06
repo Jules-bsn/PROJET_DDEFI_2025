@@ -71,13 +71,28 @@ python deployment/API.py
 L'API tournera localement et pourra être utilisée pour faire des prédictions.
 Mettre la commande suivante dans un nouveau terminal: 
 ```bash
-curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d '[
-    {"gender": "Male", "SeniorCitizen": 0, "Partner": "Yes", "Dependents": "No", 
-     "tenure": 12, "PhoneService": "Yes", "MultipleLines": "No", "InternetService": "Fiber optic",
-     "OnlineSecurity": "No", "OnlineBackup": "No", "DeviceProtection": "No", "TechSupport": "No",
-     "StreamingTV": "Yes", "StreamingMovies": "No", "Contract": "Month-to-month",
-     "PaperlessBilling": "Yes", "PaymentMethod": "Electronic check", "MonthlyCharges": 70.35,
-     "TotalCharges": 140.70}
+curl -X POST "http://127.0.0.1:5000/predict" -H "Content-Type: application/json" -d '{
+    "gender": "Female",
+    "SeniorCitizen": 0,
+    "Partner": "Yes",
+    "Dependents": "No",
+    "tenure": 1,
+    "PhoneService": "No",
+    "MultipleLines": "No phone service",
+    "InternetService": "DSL",
+    "OnlineSecurity": "No",
+    "OnlineBackup": "Yes",
+    "DeviceProtection": "No",
+    "TechSupport": "No",
+    "StreamingTV": "No",
+    "StreamingMovies": "No",
+    "Contract": "Month-to-month",
+    "PaperlessBilling": "Yes",
+    "PaymentMethod": "Electronic check",
+    "MonthlyCharges": 29.85,
+    "TotalCharges": 29.85
+}'
+
 ]'
 ```
 
