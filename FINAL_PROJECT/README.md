@@ -14,13 +14,13 @@ Ce projet met en œuvre un pipeline de machine learning complet pour l'analyse e
 ├── 📂 notebook               # Contient les recherches et analyses sur la pipeline et le modéle choisi 
 │
 ├── 📂 scripts                 # Scripts Python pour l'entraînement et l'évaluation
-│   ├── clean_data.py          # Script pour nettoyer et préparer les données
-│   ├── train_model.py         # Script pour entraîner le modèle
+│   ├── data_cleaninig.py          # Script pour nettoyer et préparer les données
+│   ├── train_model_xgboost.py         # Script pour entraîner le modèle
 │   ├── evaluate_model.py      # Script pour évaluer le modèle
 │
 ├── 📂 deployment              # Dossier de déploiement (modèle entraîné et API)
 │   ├── final_model.pkl              # Modèle entraîné
-│   ├── api.py                 # API pour faire des prédictions
+│   ├── API.py                 # API pour faire des prédictions
 │
 ├── 📜 requirements.txt         # Liste des dépendances nécessaires
 ├── 📜 setup.sh                 # Script pour installer l’environnement
@@ -81,10 +81,10 @@ curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -
 ```
 
 ## 📜 Notes
-- `clean_data.py` assure le nettoyage des données et leur transformation avant de les passer dans le pipeline.
-- `train_model.py` utilise le meilleur modèle identifié avec les hyperparamètres optimaux.
+- `data_cleaning.py` assure le nettoyage des données et leur transformation avant de les passer dans le pipeline.
+- `train_model_xgboost.py` utilise le meilleur modèle identifié avec les hyperparamètres optimaux.
 - `evaluate_model.py` génère un rapport d’évaluation basé sur des métriques de classification.
-- `api.py` permet d'envoyer des requêtes pour prédire le churn sur de nouvelles données.
+- `API.py` permet d'envoyer des requêtes pour prédire le churn sur de nouvelles données.
 
 ---
 
