@@ -85,6 +85,8 @@ def normalize_features(df):
     existing_columns = [col for col in columns_to_scale if col in df.columns]
     if existing_columns:
         df[existing_columns] = scaler.fit_transform(df[existing_columns])
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df.fillna(df.median(), inplace=True)
     return df
 
 def balance_classes(X, y):
