@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
+import numpy as np
 import traceback
 from pipeline import preprocess_data
 
