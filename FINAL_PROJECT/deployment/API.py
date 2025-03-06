@@ -52,9 +52,10 @@ def predict():
         print("🔹 Prétraitement des données...")
         df = preprocess_data(df, model.feature_names_in_)
         
-        prediction = float(model.predict_proba(df)[:, 1][0])  # Probabilité de churn
+        probability = model.predict_proba(df)[:, 1][0]  # Probabilité de churn
+        prediction = "Yes" if probability >= 0.5 else "No"  # Seuil à 0.5 pour classification
         
-        return jsonify({"churn_probability": prediction})
+        return jsonify({"churn_prediction": prediction})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
