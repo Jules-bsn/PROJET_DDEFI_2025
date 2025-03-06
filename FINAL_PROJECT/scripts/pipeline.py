@@ -20,7 +20,8 @@ def clean_data(df):
     df[df_numeric.columns] = df_numeric.fillna(df_numeric.median())
     
     # Conversion de la colonne cible 'Churn' en valeurs numériques
-    df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
+    if 'Churn' in df.columns:
+        df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     
     # Création de nouvelles features
     if 'TotalCharges' in df.columns and 'tenure' in df.columns:
@@ -49,6 +50,13 @@ def clean_data(df):
     # Encodage des variables catégoriques
     df = pd.get_dummies(df, drop_first=False)
     
+    return df
+
+def ensure_all_columns(df, reference_df):
+    """Assure que toutes les colonnes du DataFrame de référence sont présentes dans le DataFrame actuel."""
+    for col in reference_df.columns:
+        if col not in df.columns:
+            df[col] = 0
     return df
 
 def remove_multicollinearity(df, threshold=10.0):
@@ -103,3 +111,12 @@ def process_pipeline(file_path, output_path):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df_resampled.to_csv(output_path, index=False)
     print(f"✅ Fichier nettoyé et équilibré sauvegardé : {output_path}")
+
+def prepare_prediction_data(data, reference_df):
+    """Prépare les données pour la prédiction."""
+    df = pd.DataFrame([data])
+    df = clean_data(df)
+    df = remove_multicollinearity(df)
+    df = normalize_features(df)
+    df = ensure_all_columns(df, reference_df)
+    return df
