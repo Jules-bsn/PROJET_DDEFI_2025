@@ -9,10 +9,7 @@ app = Flask(__name__)
 model = joblib.load('deployment/final_model.pkl')
 
 # Charger un DataFrame de référence pour s'assurer que toutes les colonnes sont présentes
-reference_df = pd.read_csv('data/raw/customer_churn_telecom_services.csv')
-reference_df = clean_data(reference_df)
-reference_df = remove_multicollinearity(reference_df)
-reference_df = normalize_features(reference_df)
+reference_df = pd.read_csv('data/processed/cleaned_data.csv')
 
 @app.route('/predict', methods=['POST'])
 def predict():
