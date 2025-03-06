@@ -30,48 +30,37 @@ def clean_data(df):
         df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
     if 'Contract' in df.columns:
         df['is_long_term_contract'] = (df['Contract'] == 'Two year').astype(int)
-    if all(col in df.columns for col in ['PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']):
-        df['num_services'] = df[['PhoneService', 'MultipleLines', 'InternetService', 
-                                 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
-                                 'TechSupport', 'StreamingTV', 'StreamingMovies']].apply(
-            lambda row: sum(1 for x in row if x in ['Yes', 'Fiber optic']), axis=1
-        )
     
-    # Suppression des colonnes non pertinentes
-    drop_columns = [
-        'CustomerID', 'gender', 'PhoneService', 'tenure', 'MonthlyCharges',
-        'OnlineSecurity_No internet service', 'OnlineBackup_No internet service',
-        'StreamingMovies_No internet service', 'StreamingTV_No internet service',
-        'TechSupport_No internet service', 'DeviceProtection_No internet service',
-        'InternetService_No'
-    ]
-    df.drop(columns=[col for col in drop_columns if col in df.columns], errors='ignore', inplace=True)
-    
-    # Encodage des variables catégoriques
     df = pd.get_dummies(df, drop_first=False)
-    
     return df
 
 def remove_multicollinearity(df, threshold=10.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
-    
-    df = df.select_dtypes(include=[np.number])  # On garde seulement les colonnes numériques
+    df = df.select_dtypes(include=[np.number])
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
     
-    # 🔹 Supprimer les colonnes constantes
-    nunique = df.nunique()
-    constant_columns = nunique[nunique == 1].index.tolist()
-    if constant_columns:
-        print(f"⚠️ Suppression des colonnes constantes : {constant_columns}")
-        df.drop(columns=constant_columns, inplace=True)
-
+    critical_features = [
+        "SeniorCitizen", "TotalCharges", "avg_monthly_charge",
+        "Partner_Yes", "Dependents_Yes", "MultipleLines_No phone service",
+        "MultipleLines_Yes", "InternetService_Fiber optic", "OnlineSecurity_Yes",
+        "OnlineBackup_Yes", "DeviceProtection_Yes", "TechSupport_Yes",
+        "StreamingTV_Yes", "StreamingMovies_No internet service",
+        "StreamingMovies_Yes", "Contract_One year", "Contract_Two year",
+        "PaperlessBilling_Yes", "PaymentMethod_Bank transfer (automatic)",
+        "PaymentMethod_Credit card (automatic)", "PaymentMethod_Electronic check",
+        "PaymentMethod_Mailed check"
+    ]
+    
     vif_data = pd.DataFrame()
     vif_data["Feature"] = df.columns
     vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
     
     while vif_data["VIF"].max() > threshold:
         feature_to_remove = vif_data.loc[vif_data["VIF"].idxmax(), "Feature"]
+        if feature_to_remove in critical_features:
+            print(f"⚠️ La variable critique {feature_to_remove} NE sera PAS supprimée (VIF={vif_data['VIF'].max():.2f})")
+            break  # Stoppe la suppression pour protéger cette variable
         print(f"⚠️ Suppression de la variable fortement colinéaire : {feature_to_remove} (VIF={vif_data['VIF'].max():.2f})")
         df.drop(columns=[feature_to_remove], inplace=True)
         
@@ -103,13 +92,15 @@ def process_pipeline(file_path, output_path):
     df = remove_multicollinearity(df)
     df = normalize_features(df)
     
-    y = df['Churn']
-    X = df.drop(columns=['Churn'])
+    y = df['Churn'] if 'Churn' in df.columns else None
+    X = df.drop(columns=['Churn']) if 'Churn' in df.columns else df
     
-    X, y = balance_classes(X, y)
+    if y is not None:
+        X, y = balance_classes(X, y)
     
     df_resampled = pd.DataFrame(X, columns=X.columns)
-    df_resampled['Churn'] = y
+    if y is not None:
+        df_resampled['Churn'] = y
     
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df_resampled.to_csv(output_path, index=False)
