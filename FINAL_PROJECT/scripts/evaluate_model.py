@@ -1,98 +1,57 @@
 import joblib
 import pandas as pd
 import numpy as np
-from flask import Flask, request, jsonify
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 
-def preprocess_data(df, feature_names):
-    """Nettoie et transforme les données pour correspondre au modèle entraîné."""
-    df = df.copy()
+def evaluate_model(model_path, data_path):
+    """Charge le modèle et les données, effectue l'évaluation et détecte l'overfitting."""
+    print("🔹 Chargement du modèle...")
+    model = joblib.load(model_path)
     
-    # Vérifier et convertir 'TotalCharges' en numérique (peut contenir des valeurs vides)
-    df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce').fillna(0)
+    print("🔹 Chargement des données...")
+    df = pd.read_csv(data_path)
     
-    df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)
-    df['engagement_score'] = (
-        df['tenure'] * 0.2 +
-        df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 +
-        df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
-    )
+    y = df['Churn']
+    X = df.drop(columns=['Churn'])
     
-    scaler = StandardScaler()
-    df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']] = scaler.fit_transform(
-        df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']]
-    )
+    print("🔹 Séparation des données en train et test...")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     
-    df = pd.get_dummies(df, drop_first=True)
+    print("🔹 Prédictions du modèle...")
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
+    y_train_proba = model.predict_proba(X_train)[:, 1]
+    y_test_proba = model.predict_proba(X_test)[:, 1]
     
-    # Assurer que toutes les colonnes du modèle sont présentes
-    missing_cols = set(feature_names) - set(df.columns)
-    for col in missing_cols:
-        df[col] = 0  # Ajouter les colonnes manquantes avec des valeurs nulles
+    print("🔹 Calcul des métriques...")
+    metrics = {
+        "Train Accuracy": accuracy_score(y_train, y_train_pred),
+        "Test Accuracy": accuracy_score(y_test, y_test_pred),
+        "Train Precision": precision_score(y_train, y_train_pred),
+        "Test Precision": precision_score(y_test, y_test_pred),
+        "Train Recall": recall_score(y_train, y_train_pred),
+        "Test Recall": recall_score(y_test, y_test_pred),
+        "Train F1-score": f1_score(y_train, y_train_pred),
+        "Test F1-score": f1_score(y_test, y_test_pred),
+        "Train ROC-AUC": roc_auc_score(y_train, y_train_proba),
+        "Test ROC-AUC": roc_auc_score(y_test, y_test_proba)
+    }
     
-    # Réordonner les colonnes pour correspondre exactement à celles du modèle
-    df = df[feature_names]
+    print("🔹 Détection d'overfitting...")
+    overfitting_status = "Yes" if metrics["Train Accuracy"] - metrics["Test Accuracy"] > 0.1 else "No"
+    metrics["Overfitting Detected"] = overfitting_status
     
-    return df.astype(np.float64)  # Conversion explicite pour éviter les erreurs de sérialisation
+    print("🔹 Affichage des résultats...")
+    for key, value in metrics.items():
+        print(f"{key}: {value:.4f}")
+    
+    print("\nConfusion Matrix (Test Set):\n", confusion_matrix(y_test, y_test_pred))
+    print("\nClassification Report (Test Set):\n", classification_report(y_test, y_test_pred))
+    
+    return metrics
 
-# Charger le modèle entraîné
-model_path = "deployment/final_model.pkl"
-model = joblib.load(model_path)
-
-# Initialiser l'application Flask
-app = Flask(__name__)
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    """Endpoint pour effectuer des prédictions sur de nouvelles données."""
-    try:
-        data = request.get_json()
-        df = pd.DataFrame([data])
-        
-        print("🔹 Prétraitement des données...")
-        df = preprocess_data(df, model.feature_names_in_)
-        
-        probability = model.predict_proba(df)[:, 1][0]  # Probabilité de churn
-        prediction = "Yes" if probability >= 0.5 else "No"  # Seuil à 0.5 pour classification
-        
-        return jsonify({"churn_prediction": prediction})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/evaluate', methods=['GET'])
-def evaluate():
-    """Évalue les performances du modèle sur un jeu de test et détecte l'overfitting."""
-    try:
-        # Charger les données traitées
-        data_path = "data/processed/cleaned_data.csv"
-        df = pd.read_csv(data_path)
-        
-        y = df['Churn']
-        X = df.drop(columns=['Churn'])
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-        
-        # Évaluer sur le jeu de test
-        y_train_pred = model.predict(X_train)
-        y_test_pred = model.predict(X_test)
-        
-        train_score = model.score(X_train, y_train)
-        test_score = model.score(X_test, y_test)
-        
-        overfitting_status = "Yes" if train_score - test_score > 0.1 else "No"
-        
-        metrics = {
-            "train_accuracy": train_score,
-            "test_accuracy": test_score,
-            "overfitting_detected": overfitting_status,
-            "classification_report": classification_report(y_test, y_test_pred, output_dict=True),
-            "confusion_matrix": confusion_matrix(y_test, y_test_pred).tolist()
-        }
-        
-        return jsonify(metrics)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    model_file = "deployment/final_model.pkl"
+    data_file = "data/processed/cleaned_data.csv"
+    evaluate_model(model_file, data_file)
