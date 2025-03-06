@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
-import numpy as np
 import traceback
 from pipeline import preprocess_data
 
@@ -30,12 +29,12 @@ def predict():
         if 'Churn' in df.columns:
             df = df.drop(columns=['Churn'])
         
-        # S'assurer que toutes les colonnes sont de type string avant d'utiliser .str.strip()
+        # S'assurer que toutes les colonnes sont des chaînes de caractères avant traitement
         df.columns = df.columns.astype(str)
         
-        # Convertir les colonnes objets en string explicitement si nécessaire
-        for col in df.select_dtypes(exclude=[np.number]).columns:
-            df[col] = df[col].astype(str)
+        # Vérifier la présence de 'TotalCharges' et le convertir en float si nécessaire
+        if 'TotalCharges' in df.columns:
+            df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
         
         # Appliquer le même traitement que dans data_cleaner
         df = preprocess_data(df)
