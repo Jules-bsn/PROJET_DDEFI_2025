@@ -4,7 +4,7 @@ import numpy as np
 from flask import Flask, request, jsonify
 from sklearn.preprocessing import StandardScaler
 
-def preprocess_data(df):
+def preprocess_data(df, feature_names):
     """Nettoie et transforme les données pour correspondre au modèle entraîné."""
     df = df.copy()
     
@@ -24,6 +24,15 @@ def preprocess_data(df):
     )
     
     df = pd.get_dummies(df, drop_first=True)
+    
+    # Assurer que toutes les colonnes du modèle sont présentes
+    missing_cols = set(feature_names) - set(df.columns)
+    for col in missing_cols:
+        df[col] = 0  # Ajouter les colonnes manquantes avec des valeurs nulles
+    
+    # Réordonner les colonnes pour correspondre exactement à celles du modèle
+    df = df[feature_names]
+    
     return df
 
 # Charger le modèle entraîné
@@ -41,14 +50,8 @@ def predict():
         df = pd.DataFrame([data])
         
         print("🔹 Prétraitement des données...")
-        df = preprocess_data(df)
+        df = preprocess_data(df, model.feature_names_in_)
         
-        # Vérification des colonnes manquantes
-        missing_cols = set(model.feature_names_in_) - set(df.columns)
-        if missing_cols:
-            return jsonify({"error": f"Colonnes manquantes: {missing_cols}"}), 400
-        
-        df = df[model.feature_names_in_]
         prediction = model.predict_proba(df)[:, 1][0]  # Probabilité de churn
         
         return jsonify({"churn_probability": prediction})
