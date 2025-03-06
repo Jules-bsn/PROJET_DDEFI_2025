@@ -29,6 +29,6 @@ joblib.dump(xgb_search.best_estimator_, 'deployment/final_model.pkl')
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 scores_xgb = RandomizedSearchCV(xgb_search.best_estimator_, param_distributions={}, n_iter=1, cv=cv, scoring='roc_auc')
 scores_xgb.fit(X, y)
-print(f"✅ XGBoost Mean ROC-AUC: {scores_xgb.best_score_:.4f}")
+print(f" XGBoost Mean ROC-AUC: {scores_xgb.best_score_:.4f}")
 
-print("📂 Modèle XGBoost optimisé et sauvegardé !")
+print(" Modèle XGBoost optimisé et sauvegardé !")
