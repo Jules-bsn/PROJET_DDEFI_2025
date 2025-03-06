@@ -18,12 +18,21 @@ def predict():
     """
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Aucune donnée reçue. Veuillez envoyer un JSON valide."}), 400
+        
         df = pd.DataFrame(data)
+        print("🔹 Données reçues :", df.head())
         
         # Vérification des colonnes attendues
         expected_features = model.feature_names_in_
-        if not all(feature in df.columns for feature in expected_features):
-            return jsonify({"error": "Données invalides. Vérifiez que toutes les colonnes attendues sont présentes."}), 400
+        missing_features = [feature for feature in expected_features if feature not in df.columns]
+        
+        if missing_features:
+            return jsonify({
+                "error": "Données invalides. Certaines colonnes attendues sont manquantes.",
+                "missing_features": missing_features
+            }), 400
         
         # Prédiction des probabilités de churn
         predictions = model.predict_proba(df)[:, 1]
