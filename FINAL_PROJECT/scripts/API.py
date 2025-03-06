@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import joblib
 import pandas as pd
 import traceback
+from pipeline import preprocess_data
 
 # Charger le modèle entraîné
 MODEL_PATH = "deployment/final_model.pkl"
@@ -21,18 +22,24 @@ def predict():
         if not data:
             return jsonify({"error": "Aucune donnée reçue. Veuillez envoyer un JSON valide."}), 400
         
-        df = pd.DataFrame(data)
-        print("🔹 Données reçues :", df.head())
+        df = pd.DataFrame([data])  # Convertir la ligne unique en DataFrame
+        print("🔹 Données reçues avant traitement :", df.head())
         
-        # Vérification des colonnes attendues
+        # Appliquer le même traitement que dans data_cleaner
+        df = preprocess_data(df)
+        print("🔹 Données après prétraitement :", df.head())
+        
+        # Vérifier si toutes les colonnes attendues par le modèle sont présentes
         expected_features = model.feature_names_in_
         missing_features = [feature for feature in expected_features if feature not in df.columns]
-        
         if missing_features:
             return jsonify({
-                "error": "Données invalides. Certaines colonnes attendues sont manquantes.",
+                "error": "Données invalides. Certaines colonnes attendues sont manquantes après le prétraitement.",
                 "missing_features": missing_features
             }), 400
+        
+        # Réordonner les colonnes pour correspondre au modèle
+        df = df[expected_features]
         
         # Prédiction des probabilités de churn
         predictions = model.predict_proba(df)[:, 1]
