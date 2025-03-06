@@ -33,7 +33,7 @@ def preprocess_data(df, feature_names):
     # Réordonner les colonnes pour correspondre exactement à celles du modèle
     df = df[feature_names]
     
-    return df
+    return df.astype(np.float64)  # Conversion explicite pour éviter les erreurs de sérialisation
 
 # Charger le modèle entraîné
 model_path = "deployment/final_model.pkl"
@@ -52,7 +52,7 @@ def predict():
         print("🔹 Prétraitement des données...")
         df = preprocess_data(df, model.feature_names_in_)
         
-        prediction = model.predict_proba(df)[:, 1][0]  # Probabilité de churn
+        prediction = float(model.predict_proba(df)[:, 1][0])  # Probabilité de churn
         
         return jsonify({"churn_probability": prediction})
     except Exception as e:
