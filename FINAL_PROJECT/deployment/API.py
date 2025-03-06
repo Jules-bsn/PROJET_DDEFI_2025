@@ -6,6 +6,11 @@ from sklearn.preprocessing import StandardScaler
 
 def preprocess_data(df):
     """Nettoie et transforme les données pour correspondre au modèle entraîné."""
+    df = df.copy()
+    
+    # Vérifier et convertir 'TotalCharges' en numérique (peut contenir des valeurs vides)
+    df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce').fillna(0)
+    
     df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)
     df['engagement_score'] = (
         df['tenure'] * 0.2 +
