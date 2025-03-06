@@ -1,35 +1,51 @@
 import pandas as pd
-import joblib
+import xgboost as xgb
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
-from xgboost import XGBClassifier
-from pipeline import process_pipeline
+from sklearn.metrics import roc_auc_score
+import joblib
 
-# Chemins d'accès
-RAW_DATA_PATH = 'data/raw/customer_churn_telecom_services.csv'
-PROCESSED_DATA_PATH = 'data/processed/cleaned_data.csv'
-MODEL_PATH = 'deployment/final_model.pkl'
+def train_xgboost(input_path, model_output_path):
+    """
+    Charge les données nettoyées, entraîne un modèle XGBoost avec optimisation des hyperparamètres
+    et enregistre le modèle entraîné.
+    """
+    print("\n🔹 Chargement des données nettoyées...")
+    df = pd.read_csv(input_path)
+    
+    print("🔹 Séparation des features et de la cible...")
+    y = df['Churn']
+    X = df.drop(columns=['Churn'])
+    
+    print("🔹 Séparation en jeu d'entraînement et de validation...")
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    
+    print("🔹 Définition des hyperparamètres pour la recherche...")
+    param_grid = {
+        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'max_depth': [3, 5, 7, 10],
+        'n_estimators': [100, 200, 500],
+        'subsample': [0.6, 0.8, 1.0],
+        'colsample_bytree': [0.6, 0.8, 1.0]
+    }
+    
+    model = xgb.XGBClassifier(eval_metric='logloss', use_label_encoder=False)
+    search = RandomizedSearchCV(model, param_distributions=param_grid, n_iter=10, cv=5,
+                                scoring='roc_auc', random_state=42, verbose=1, n_jobs=-1)
+    
+    print("🔹 Entraînement du modèle XGBoost avec recherche d'hyperparamètres...")
+    search.fit(X_train, y_train)
+    
+    print(f"✅ Meilleurs hyperparamètres trouvés : {search.best_params_}")
+    best_model = search.best_estimator_
+    
+    print("🔹 Évaluation du modèle...")
+    y_pred_proba = best_model.predict_proba(X_val)[:, 1]
+    auc_score = roc_auc_score(y_val, y_pred_proba)
+    print(f"✅ Score ROC-AUC sur le jeu de validation : {auc_score:.4f}")
+    
+    print("🔹 Sauvegarde du modèle entraîné...")
+    joblib.dump(best_model, model_output_path)
+    print(f"✅ Modèle enregistré sous : {model_output_path}")
 
-# Exécution du pipeline de transformation des données
-process_pipeline(RAW_DATA_PATH, PROCESSED_DATA_PATH)
-
-# Chargement des données transformées
-df = pd.read_csv(PROCESSED_DATA_PATH)
-y = df['Churn']
-X = df.drop(columns=['Churn'])
-
-# Séparation des données en ensembles d'entraînement et de test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-
-# Optimisation des hyperparamètres pour XGBoost
-param_grid_xgb = {
-    'learning_rate': [0.01, 0.05, 0.1, 0.2],
-    'max_depth': [3, 5, 7, 10]
-}
-xgb_search = RandomizedSearchCV(XGBClassifier(eval_metric='logloss'), param_grid_xgb, n_iter=10, cv=5, scoring='roc_auc', random_state=42)
-xgb_search.fit(X_train, y_train)
-
-print("Best parameters for XGBoost: ", xgb_search.best_params_)
-
-# Sauvegarde du modèle optimisé
-joblib.dump(xgb_search.best_estimator_, MODEL_PATH)
-print(f"✅ Modèle sauvegardé : {MODEL_PATH}")
+if __name__ == "__main__":
+    train_xgboost("data/processed/cleaned_data.csv", "deployment/final_model.pkl")
