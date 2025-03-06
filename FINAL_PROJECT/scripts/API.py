@@ -25,12 +25,9 @@ def predict():
         df = pd.DataFrame([data])  # Convertir la ligne unique en DataFrame
         print("🔹 Données reçues avant traitement :", df.head())
         
-        # Supprimer 'Churn' si présent (car il n'est pas utilisé en prédiction)
+        # Vérifier et supprimer 'Churn' s'il est présent
         if 'Churn' in df.columns:
             df = df.drop(columns=['Churn'])
-        
-        # S'assurer que les colonnes sont de type string avant d'utiliser str.strip()
-        df.columns = df.columns.astype(str)
         
         # Appliquer le même traitement que dans data_cleaner
         df = preprocess_data(df)
@@ -44,6 +41,10 @@ def predict():
                 "error": "Données invalides. Certaines colonnes attendues sont manquantes après le prétraitement.",
                 "missing_features": missing_features
             }), 400
+        
+        # Ajouter les colonnes manquantes avec des valeurs par défaut (0)
+        for feature in missing_features:
+            df[feature] = 0
         
         # Réordonner les colonnes pour correspondre au modèle
         df = df[expected_features]
