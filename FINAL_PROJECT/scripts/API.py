@@ -25,6 +25,10 @@ def predict():
         df = pd.DataFrame([data])  # Convertir la ligne unique en DataFrame
         print("🔹 Données reçues avant traitement :", df.head())
         
+        # Supprimer 'Churn' si présent (car il n'est pas utilisé en prédiction)
+        if 'Churn' in df.columns:
+            df = df.drop(columns=['Churn'])
+        
         # S'assurer que les colonnes sont de type string avant d'utiliser str.strip()
         df.columns = df.columns.astype(str)
         
