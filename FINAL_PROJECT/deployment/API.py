@@ -2,7 +2,24 @@ import joblib
 import pandas as pd
 import numpy as np
 from flask import Flask, request, jsonify
-from pipeline import preprocess_data
+from sklearn.preprocessing import StandardScaler
+
+def preprocess_data(df):
+    """Nettoie et transforme les données pour correspondre au modèle entraîné."""
+    df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)
+    df['engagement_score'] = (
+        df['tenure'] * 0.2 +
+        df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 +
+        df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
+    )
+    
+    scaler = StandardScaler()
+    df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']] = scaler.fit_transform(
+        df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']]
+    )
+    
+    df = pd.get_dummies(df, drop_first=True)
+    return df
 
 # Charger le modèle entraîné
 model_path = "deployment/final_model.pkl"
