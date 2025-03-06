@@ -53,17 +53,27 @@ def clean_data(df):
 
 def remove_multicollinearity(df, threshold=10.0):
     """Supprime les variables fortement colinéaires en utilisant le VIF."""
-    df = df.select_dtypes(include=[np.number])
+    
+    df = df.select_dtypes(include=[np.number])  # On garde seulement les colonnes numériques
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
     
+    # 🔹 Supprimer les colonnes constantes
+    nunique = df.nunique()
+    constant_columns = nunique[nunique == 1].index.tolist()
+    if constant_columns:
+        print(f"⚠️ Suppression des colonnes constantes : {constant_columns}")
+        df.drop(columns=constant_columns, inplace=True)
+
     vif_data = pd.DataFrame()
     vif_data["Feature"] = df.columns
     vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
     
     while vif_data["VIF"].max() > threshold:
         feature_to_remove = vif_data.loc[vif_data["VIF"].idxmax(), "Feature"]
-        df = df.drop(columns=[feature_to_remove])
+        print(f"⚠️ Suppression de la variable fortement colinéaire : {feature_to_remove} (VIF={vif_data['VIF'].max():.2f})")
+        df.drop(columns=[feature_to_remove], inplace=True)
+        
         vif_data = pd.DataFrame()
         vif_data["Feature"] = df.columns
         vif_data["VIF"] = [variance_inflation_factor(df.values, i) for i in range(df.shape[1])]
