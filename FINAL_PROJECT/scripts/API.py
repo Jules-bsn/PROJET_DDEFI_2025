@@ -29,6 +29,13 @@ def predict():
         if 'Churn' in df.columns:
             df = df.drop(columns=['Churn'])
         
+        # S'assurer que toutes les colonnes sont de type string avant d'utiliser .str.strip()
+        df.columns = df.columns.astype(str)
+        
+        # Convertir les colonnes objets en string explicitement si nécessaire
+        for col in df.select_dtypes(exclude=[np.number]).columns:
+            df[col] = df[col].astype(str)
+        
         # Appliquer le même traitement que dans data_cleaner
         df = preprocess_data(df)
         print("🔹 Données après prétraitement :", df.head())
