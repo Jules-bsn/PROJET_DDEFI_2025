@@ -14,7 +14,10 @@ def preprocess_data(df):
     - Transformation en variables indicatrices
     """
     df.columns = df.columns.str.strip()
-    df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
+    
+    # Vérifier si la colonne 'Churn' est présente (cas entraînement) avant de la traiter
+    if 'Churn' in df.columns:
+        df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     
     # Remplissage des valeurs manquantes
     df_numeric = df.select_dtypes(include=[np.number])
@@ -22,11 +25,17 @@ def preprocess_data(df):
     
     # Création de nouvelles variables
     df['avg_monthly_charge'] = df['TotalCharges'] / (df['tenure'] + 1)
-    df['engagement_score'] = df['tenure'] * 0.2 + df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 + df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
+    df['engagement_score'] = (
+        df['tenure'] * 0.2 +
+        df['PaperlessBilling'].map({'Yes': 1, 'No': 0}) * 1.2 +
+        df['Contract'].map({'Two year': 4, 'One year': 2, 'Month-to-month': 0})
+    )
     
     # Standardisation
     scaler = StandardScaler()
-    df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']] = scaler.fit_transform(df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']])
+    df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']] = scaler.fit_transform(
+        df[['TotalCharges', 'avg_monthly_charge', 'engagement_score']]
+    )
     
     # Transformation en variables indicatrices
     df = pd.get_dummies(df, drop_first=True)
